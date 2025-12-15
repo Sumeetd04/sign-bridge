@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignBridge API Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-8 bg-gray-100">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">SignBridge API Test</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Registration Test -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-bold mb-4">Test Registration</h2>
+                <div class="space-y-3">
+                    <input type="text" id="regName" placeholder="Name" class="w-full p-2 border rounded">
+                    <input type="email" id="regEmail" placeholder="Email" class="w-full p-2 border rounded">
+                    <input type="password" id="regPassword" placeholder="Password" class="w-full p-2 border rounded">
+                    <button onclick="testRegister()" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+                        Test Registration
+                    </button>
+                </div>
+                <div id="regResult" class="mt-4 p-3 rounded hidden"></div>
+            </div>
+            
+            <!-- Login Test -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-bold mb-4">Test Login</h2>
+                <div class="space-y-3">
+                    <input type="email" id="loginEmail" placeholder="Email" class="w-full p-2 border rounded">
+                    <input type="password" id="loginPassword" placeholder="Password" class="w-full p-2 border rounded">
+                    <button onclick="testLogin()" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">
+                        Test Login
+                    </button>
+                </div>
+                <div id="loginResult" class="mt-4 p-3 rounded hidden"></div>
+            </div>
+        </div>
+        
+        <!-- Results Area -->
+        <div class="mt-8">
+            <h2 class="text-xl font-bold mb-4">API Response</h2>
+            <pre id="apiResponse" class="bg-gray-800 text-white p-4 rounded-lg overflow-auto"></pre>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost/signbridge/backend/api/';
+        
+        async function testRegister() {
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            
+            const response = await fetch(API_BASE + 'register.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, email, password })
+            });
+            
+            const result = await response.json();
+            displayResult(result, 'regResult');
+        }
+        
+        async function testLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            const response = await fetch(API_BASE + 'login.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+            
+            const result = await response.json();
+            displayResult(result, 'loginResult');
+        }
+        
+        function displayResult(result, elementId) {
+            const element = document.getElementById(elementId);
+            const apiResponse = document.getElementById('apiResponse');
+            
+            // Display in result box
+            element.className = 'mt-4 p-3 rounded ' + (result.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800');
+            element.innerHTML = `<strong>${result.success ? '✅ Success' : '❌ Error'}:</strong> ${result.message}`;
+            element.classList.remove('hidden');
+            
+            // Display full response
+            apiResponse.textContent = JSON.stringify(result, null, 2);
+        }
+    </script>
+</body>
+</html>

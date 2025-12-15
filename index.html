@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignBridge: Connecting Worlds Through Sign Language</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen flex flex-col">
+    <!-- Header Section -->
+    <header class="bg-white shadow-md py-4">
+        <nav class="container flex flex-col md:flex-row items-center justify-between">
+            <!-- Logo -->
+            <div class="logo-container flex flex-col items-center mb-4 md:mb-0">
+                <svg class="logo-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                      <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M12 2C6.477 2 2 6.477 2 12C2 17.523 6.477 22 12 22C17.523 22 22 17.523 22 12C22 6.477 17.523 2 12 2ZM17 14H15V10H17V14ZM11 14H9V10H11V14ZM12 8C12.5523 8 13 7.55228 13 7C13 6.44772 12.5523 6 12 6C11.4477 6 11 6.44772 11 7C11 7.55228 11.4477 8 12 8ZM12 16C11.4477 16 11 16.4477 11 17C11 17.5523 11.4477 18 12 18C12.5523 18 13 17.5523 13 17C13 16.4477 12.5523 16 12 16ZM12 13C12 11.3431 10.6569 10 9 10C7.34315 10 6 11.3431 6 13V15H7V13C7 11.8954 7.89543 11 9 11C10.1046 11 11 11.8954 11 13V15H12V13Z" fill="url(#iconGradient)"/>
+                </svg>
+                <a href="#" class="text-3xl font-bold text-blue-600 mt-2" onclick="showSection('home'); return false;">SignBridge</a>
+            </div>
+
+            <!-- Navigation Links -->
+            <ul class="flex flex-wrap justify-center space-x-4 md:space-x-6 text-lg">
+                <li class="relative dropdown">
+                    <a href="#" class="nav-link text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md transition duration-200" onclick="toggleDropdown(event, 'learn-dropdown'); return false;">Learn <span class="ml-1">&#9662;</span></a>
+                    <div id="learn-dropdown" class="dropdown-menu">
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md" onclick="showSection('learn-academics'); return false;">Academics</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md" onclick="showSection('learn-dos-donts'); return false;">Do's & Don'ts</a>
+                    </div>
+                </li>
+                <li class="relative dropdown">
+                    <a href="#" class="nav-link text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md transition duration-200" onclick="toggleDropdown(event, 'dictionary-dropdown'); return false;">Dictionary <span class="ml-1">&#9662;</span></a>
+                    <div id="dictionary-dropdown" class="dropdown-menu">
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md" onclick="showDictionaryCategory('alphabets'); return false;">Alphabets</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md" onclick="showDictionaryCategory('numbers'); return false;">Numbers</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md" onclick="showDictionaryCategory('daysMonths'); return false;">Days & Months</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md" onclick="showDictionaryCategory('colors'); return false;">Colors</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md" onclick="showDictionaryCategory('family'); return false;">Family</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md" onclick="showDictionaryCategory('greetings'); return false;">Greetings</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md" onclick="showDictionaryCategory('food'); return false;">Food</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md" onclick="showDictionaryCategory('animals'); return false;">Animals</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md" onclick="showDictionaryCategory('emotions'); return false;">Emotions</a>
+                    </div>
+                </li>
+                <li class="relative dropdown">
+                    <a href="#" class="nav-link text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md transition duration-200" onclick="toggleDropdown(event, 'quizzes-games-dropdown'); return false;">Quizzes & Games <span class="ml-1">&#9662;</span></a>
+                    <div id="quizzes-games-dropdown" class="dropdown-menu">
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md" onclick="showSection('quiz-alphabets'); return false;">Alphabets Quiz</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md" onclick="showSection('quiz-greetings'); return false;">Greetings Quiz</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md" onclick="showSection('challenges'); return false;">Challenges</a>
+                    </div>
+                </li>
+                <li><a href="#" class="nav-link text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md transition duration-200" onclick="showSection('voice-to-sign'); return false;">Voice to Sign</a></li>
+                <li><a href="#" class="nav-link text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md transition duration-200" onclick="showSection('text-to-speech'); return false;">Text to Speech</a></li>
+                <li><a href="#" class="nav-link text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md transition duration-200" onclick="showSection('sign-to-voice'); return false;">Sign to Voice</a></li>
+            </ul>
+
+            <!-- Login/Sign Up Buttons -->
+            <div class="mt-4 md:mt-0 flex space-x-2">
+                <button class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-md" onclick="openModal('loginModal')">Login</button>
+                <button class="bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-md" onclick="openModal('signupModal')">Sign Up</button>
+            </div>
+        </nav>
+    </header>
+    <section id="text-to-speech" class="section hidden-section">
+    <h2 class="section-title">Text to Speech</h2>
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white p-8 rounded-xl shadow-lg border-2 border-blue-200">
+            <div class="form-group">
+                <label for="textToSpeak" class="block text-gray-700 text-lg font-bold mb-3">Enter text to convert to speech:</label>
+                <textarea id="textToSpeak" rows="6" class="form-input resize-none" placeholder="Type something here and click 'Speak'..."></textarea>
+            </div>
+            <div class="flex justify-center mt-6">
+                <button id="speakText" class="btn btn-primary">
+                    🔊 Speak Text
+                </button>
+            </div>
+        </div>
+        
+        <div class="mt-6 bg-blue-50 p-6 rounded-xl border-2 border-blue-200">
+            <h3 class="text-lg font-semibold text-blue-800 mb-3">💡 Tips:</h3>
+            <ul class="text-sm text-blue-700 space-y-2">
+                <li>• Works best with shorter sentences for clearer pronunciation</li>
+                <li>• Adjusts automatically to your browser's language settings</li>
+                <li>• Perfect for practicing pronunciation or accessibility needs</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow container py-8">
+
+        <!-- Home Section -->
+        <section id="home" class="current-section">
+            <div class="hero-section">
+                <h1 class="hero-title">Bridge the Communication Gap</h1>
+                <p class="hero-subtitle">Your comprehensive platform for learning, practicing, and understanding sign language, fostering communication and inclusivity.</p>
+                <div class="space-x-4">
+                    <button class="btn btn-primary" onclick="showSection('learn-academics');">
+                        <span>🚀 Start Learning</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="openModal('loginModal')">
+                        <span>🔐 Login / Sign Up</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Features Showcase -->
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">📚</span>
+                    <h3>Learn with Ease</h3>
+                    <p>Structured academic lessons and essential do's and don'ts for effective communication.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📖</span>
+                    <h3>Comprehensive Dictionary</h3>
+                    <p>Explore signs for alphabets, numbers, greetings, emotions, and more with interactive learning.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🎮</span>
+                    <h3>Engaging Quizzes</h3>
+                    <p>Test your knowledge and challenge yourself with interactive games and progress tracking.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🎤</span>
+                    <h3>Voice to Sign</h3>
+                    <p>See how spoken words can be represented in sign language with real-time conversion.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🗣️</span>
+                    <h3>Text to Speech</h3>
+                    <p>Convert any text into spoken words for auditory learners and accessibility.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">👋</span>
+                    <h3>Sign to Voice</h3>
+                    <p>The potential for visual sign language to be translated into speech in real-time.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Learn - Academics Section -->
+        <section id="learn-academics" class="section hidden-section">
+            <h2 class="section-title">Learn: Academics</h2>
+            <div class="space-y-6">
+                <div class="border border-blue-200 rounded-xl p-6 shadow-sm">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-3">Lesson 1: Introduction to ASL Basics</h3>
+                    <p class="text-gray-600 mb-4">Dive into the fundamentals of American Sign Language (ASL). Learn about the five parameters of a sign: handshape, palm orientation, location, movement, and non-manual markers (NMM).</p>
+                    <div class="aspect-video rounded-lg flex items-center justify-center text-gray-500 text-lg mb-4">
+                        <iframe 
+                            width="560" 
+                            height="315" 
+                            src="https://www.youtube.com/embed/bI3Yq-hB2O4" 
+                            title="ASL Lesson 1: Introduction to ASL" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            referrerpolicy="strict-origin-when-cross-origin" 
+                            allowfullscreen
+                            class="rounded-lg w-full h-full"
+                        ></iframe>
+                    </div>
+                    <p class="text-gray-600 text-sm mt-2">This video introduces the core concepts of ASL, including the five parameters of a sign: handshape, palm orientation, location, movement, and non-manual markers (NMM). A great starting point for beginners!</p>
+                    <button class="btn btn-primary mt-4">Start Lesson</button>
+                </div>
+                <div class="border border-blue-200 rounded-xl p-6 shadow-sm">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-3">Lesson 2: Fingerspelling & Basic Vocabulary</h3>
+                    <p class="text-gray-600 mb-4">Master the ASL alphabet for fingerspelling names and words. Discover essential vocabulary for daily conversations, like "hello," "thank you," and "my name is..."</p>
+                    <div class="aspect-video rounded-lg flex items-center justify-center text-gray-500 text-lg mb-4">
+                        <iframe 
+                            width="560" 
+                            height="315" 
+                            src="https://www.youtube.com/embed/fXf4d23WqiA" 
+                            title="ASL Lesson 2: Fingerspelling" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            referrerpolicy="strict-origin-when-cross-origin" 
+                            allowfullscreen
+                            class="rounded-lg w-full h-full"
+                        ></iframe>
+                    </div>
+                     <p class="text-gray-600 text-sm mt-2">Learn to fingerspell accurately and pick up common ASL vocabulary words. This video will help you build your foundational signing skills for everyday use.</p>
+                    <button class="btn btn-primary mt-4">Start Lesson</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Learn - Do's & Don'ts Section -->
+        <section id="learn-dos-donts" class="section hidden-section">
+            <h2 class="section-title">Learn: Do's & Don'ts</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-green-50 p-6 rounded-xl shadow-sm border border-green-200">
+                    <h3 class="text-2xl font-semibold text-green-700 mb-4 flex items-center"><span class="text-4xl mr-2">✅</span> Do's of Sign Language Etiquette</h3>
+                    <ul class="list-disc list-inside text-gray-700 space-y-2">
+                        <li>Maintain eye contact when a deaf person is signing to you.</li>
+                        <li>Learn basic signs like "hello," "thank you," and "please."</li>
+                        <li>Be patient and understanding if communication is challenging.</li>
+                        <li>Use gestures, writing, or pointing if a sign is unknown.</li>
+                        <li>Attract attention politely by waving or tapping on the shoulder.</li>
+                        <li>Ask "How may I help you?" rather than assuming assistance is needed.</li>
+                    </ul>
+                </div>
+                <div class="bg-red-50 p-6 rounded-xl shadow-sm border border-red-200">
+                    <h3 class="text-2xl font-semibold text-red-700 mb-4 flex items-center"><span class="text-4xl mr-2">❌</span> Don'ts of Sign Language Etiquette</h3>
+                    <ul class="list-disc list-inside text-gray-700 space-y-2">
+                        <li>Don't interrupt a signed conversation by walking between signers.</li>
+                        <li>Don't assume all deaf people can read lips or prefer to speak.</li>
+                        <li>Don't be afraid to make mistakes; it's part of learning.</li>
+                        <li>Don't shout or exaggerate your speech.</li>
+                        <li>Don't touch a deaf person without their permission.</li>
+                        <li>Don't block your mouth or face when speaking to a lip-reader.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dictionary Section -->
+        <section id="dictionary" class="section hidden-section">
+            <h2 class="section-title">Dictionary</h2>
+            <div class="mb-6 flex flex-wrap justify-center gap-2">
+                <button class="dict-filter-btn bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200" data-category="alphabets">Alphabets</button>
+                <button class="dict-filter-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition duration-200" data-category="numbers">Numbers</button>
+                <button class="dict-filter-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition duration-200" data-category="daysMonths">Days & Months</button>
+                <button class="dict-filter-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition duration-200" data-category="colors">Colors</button>
+                <button class="dict-filter-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition duration-200" data-category="family">Family</button>
+                <button class="dict-filter-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition duration-200" data-category="greetings">Greetings</button>
+                <button class="dict-filter-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition duration-200" data-category="food">Food</button>
+                <button class="dict-filter-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition duration-200" data-category="animals">Animals</button>
+                <button class="dict-filter-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition duration-200" data-category="emotions">Emotions</button>
+            </div>
+
+            <div class="mb-6">
+                <input type="text" id="dictionarySearch" class="form-input" placeholder="Search for a sign...">
+            </div>
+
+            <div id="dictionaryContent" class="dictionary-grid">
+                <!-- Dictionary items will be dynamically loaded here -->
+            </div>
+        </section>
+
+        <!-- Quizzes & Games Sections -->
+        <section id="quiz-alphabets" class="section hidden-section">
+            <h2 class="section-title">Quiz: Alphabets</h2>
+            <div id="alpha-quizContainer" class="max-w-xl mx-auto">
+                <div id="alpha-quizQuestion" class="text-center mb-8">
+                    <p class="text-xl font-semibold mb-4">What letter is this sign?</p>
+                    <img id="alpha-signImage" src="https://placehold.co/150x150/e0f2fe/60a5fa?text=A" alt="Sign for A" class="w-40 h-40 mx-auto rounded-lg border-2 border-blue-300">
+                </div>
+                <div id="alpha-quizOptions" class="grid grid-cols-2 gap-4">
+                    <!-- Options will be dynamically loaded here -->
+                </div>
+                <div class="flex justify-center mt-8 space-x-4">
+                    <button id="alpha-submitQuiz" class="btn btn-primary" disabled>Submit</button>
+                    <button id="alpha-nextQuiz" class="btn btn-secondary" disabled>Next</button>
+                </div>
+                <div id="alpha-quizFeedback" class="text-center mt-6 text-xl font-semibold"></div>
+                <div id="alpha-quizResult" class="text-center mt-6 text-2xl font-bold text-blue-700 hidden">
+                    Quiz Complete! Your Score: <span id="alpha-finalScore"></span> / <span id="alpha-totalQuestions"></span>
+                </div>
+            </div>
+        </section>
+
+        <section id="quiz-greetings" class="section hidden-section">
+            <h2 class="section-title">Quiz: Greetings</h2>
+            <div id="greeting-quizContainer" class="max-w-xl mx-auto">
+                <div id="greeting-quizQuestion" class="text-center mb-8">
+                    <p class="text-xl font-semibold mb-4">What does this sign mean?</p>
+                    <img id="greeting-signImage" src="https://placehold.co/150x150/cfe2f7/4a90e2?text=Greetings+Sign" alt="Greetings Sign" class="w-40 h-40 mx-auto rounded-lg border-2 border-blue-300">
+                </div>
+                <div id="greeting-quizOptions" class="grid grid-cols-2 gap-4">
+                    <!-- Options will be dynamically loaded here -->
+                </div>
+                <div class="flex justify-center mt-8 space-x-4">
+                    <button id="greeting-submitQuiz" class="btn btn-primary" disabled>Submit</button>
+                    <button id="greeting-nextQuiz" class="btn btn-secondary" disabled>Next</button>
+                </div>
+                <div id="greeting-quizFeedback" class="text-center mt-6 text-xl font-semibold"></div>
+                <div id="greeting-quizResult" class="text-center mt-6 text-2xl font-bold text-blue-700 hidden">
+                    Quiz Complete! Your Score: <span id="greeting-finalScore"></span> / <span id="greeting-totalQuestions"></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Other sections remain the same but with 'section' class added -->
+        <section id="challenges" class="section hidden-section">
+            <h2 class="section-title">Challenges</h2>
+            <p class="text-lg text-center text-gray-600">Ready for a challenge? This section will host more advanced sign language challenges, from signing sentences to interpreting longer conversations. Coming soon!</p>
+            <div class="flex justify-center mt-6">
+                <img src="https://placehold.co/300x200/d7e9f8/60a5fa?text=Challenges+Placeholder" alt="Challenges placeholder" class="rounded-lg shadow-md">
+            </div>
+        </section>
+
+<!-- Voice to Sign Section -->
+<section id="voice-to-sign" class="section hidden-section">
+    <h2 class="section-title">Voice to Sign</h2>
+    <div class="text-center mb-6">
+        <p id="voiceStatus" class="text-lg text-gray-700 mb-4">Click "Start Listening" to activate your microphone.</p>
+    </div>
+    <div class="flex flex-col items-center space-y-6">
+        <button id="startVoiceToSign" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-8 rounded-full text-lg shadow-lg transition duration-300 flex items-center">
+            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+            </svg>
+            Start Listening
+        </button>
+        
+        <div class="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Voice Input Display -->
+            <div class="bg-white p-6 rounded-xl shadow-lg border-2 border-blue-200">
+                <h3 class="text-xl font-semibold text-blue-700 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                    </svg>
+                    Your Speech
+                </h3>
+                <div id="voiceInputDisplay" class="bg-gray-50 p-4 rounded-lg min-h-[100px] flex items-center justify-center text-gray-500 border-2 border-dashed border-gray-300">
+                    Your spoken words will appear here...
+                </div>
+            </div>
+            
+            <!-- Sign Output Display -->
+            <div class="bg-white p-6 rounded-xl shadow-lg border-2 border-green-200">
+                <h3 class="text-xl font-semibold text-green-700 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"></path>
+                    </svg>
+                    Sign Language
+                </h3>
+                <div id="signOutputDisplay" class="bg-green-50 p-4 rounded-lg min-h-[250px] flex items-center justify-center border-2 border-dashed border-green-300">
+                    <div class="text-center p-6">
+                        <div class="text-4xl mb-4">👋</div>
+                        <p class="text-gray-700 font-semibold">Voice to Sign Converter</p>
+                        <p class="text-gray-500 text-sm mt-2">Click "Start Listening" and speak to see sign language equivalents</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Phrases Guide -->
+        <div class="w-full max-w-4xl bg-blue-50 p-6 rounded-xl border-2 border-blue-200">
+            <h3 class="text-lg font-semibold text-blue-800 mb-3 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Try These Phrases:
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                <span class="bg-white px-3 py-2 rounded-lg text-blue-700 text-center">Hello</span>
+                <span class="bg-white px-3 py-2 rounded-lg text-blue-700 text-center">Thank you</span>
+                <span class="bg-white px-3 py-2 rounded-lg text-blue-700 text-center">Please</span>
+                <span class="bg-white px-3 py-2 rounded-lg text-blue-700 text-center">Yes / No</span>
+                <span class="bg-white px-3 py-2 rounded-lg text-blue-700 text-center">Good morning</span>
+                <span class="bg-white px-3 py-2 rounded-lg text-blue-700 text-center">I love you</span>
+                <span class="bg-white px-3 py-2 rounded-lg text-blue-700 text-center">Help me</span>
+                <span class="bg-white px-3 py-2 rounded-lg text-blue-700 text-center">Water</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+       <section id="sign-to-voice" class="section hidden-section">
+    <h2 class="section-title">Sign to Voice</h2>
+    <div class="text-center mb-6">
+        <p id="cameraStatus" class="text-lg text-gray-700 mb-4">Camera will activate when you visit this section.</p>
+    </div>
+    <div class="flex flex-col items-center space-y-6">
+        <div class="w-full max-w-4xl bg-white p-6 rounded-xl shadow-lg border-2 border-purple-200">
+            <video id="webcamFeed" class="w-full rounded-lg hidden" autoplay playsinline></video>
+            <div class="text-center py-12" id="cameraPlaceholder">
+                <svg class="w-24 h-24 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+                <p class="text-gray-500">Camera feed will appear here</p>
+            </div>
+        </div>
+        
+        <div class="w-full max-w-4xl bg-purple-50 p-6 rounded-xl border-2 border-purple-200">
+            <h3 class="text-xl font-semibold text-purple-700 mb-4">Recognized Text:</h3>
+            <div id="translatedTextOutput" class="bg-white p-4 rounded-lg min-h-[80px] flex items-center justify-center text-gray-500 text-lg">
+                Perform a sign and see the translation here...
+            </div>
+            <button id="playTranslatedVoice" class="btn btn-primary mt-4" disabled>
+                🔊 Play Voice
+            </button>
+        </div>
+    </div>
+      </section>
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="bg-gray-800 text-white py-8 mt-auto">
+        <div class="container text-center">
+            <div class="mb-4">
+                <a href="#" class="text-gray-300 hover:text-white mx-3" onclick="showSection('home'); return false;">Home</a>
+                <a href="#" class="text-gray-300 hover:text-white mx-3" onclick="showSection('learn-academics'); return false;">Learn</a>
+                <a href="#" class="text-gray-300 hover:text-white mx-3" onclick="showDictionaryCategory('alphabets'); return false;">Dictionary</a>
+                <a href="#" class="text-gray-300 hover:text-white mx-3" onclick="showSection('quiz-alphabets'); return false;">Quizzes & Games</a>
+            </div>
+            <p>&copy; 2025 SignBridge. All rights reserved.</p>
+            <div class="flex justify-center space-x-4 mt-4">
+                <a href="#" class="text-gray-400 hover:text-white">Facebook</a>
+                <a href="#" class="text-gray-400 hover:text-white">Twitter</a>
+                <a href="#" class="text-gray-400 hover:text-white">Instagram</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modals (same as before) -->
+    <div id="loginModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('loginModal')">&times;</span>
+            <h2 class="text-3xl font-bold text-center text-blue-700 mb-6">Login</h2>
+            <form id="loginForm" class="space-y-4">
+                <div class="form-group">
+                    <label for="loginEmail" class="block text-gray-700 text-sm font-bold mb-2">Email:</label>
+                    <input type="email" id="loginEmail" name="loginEmail" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword" class="block text-gray-700 text-sm font-bold mb-2">Password:</label>
+                    <input type="password" id="loginPassword" name="loginPassword" class="form-input" required>
+                </div>
+                <div class="flex items-center justify-between">
+                    <a href="#" class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">Forgot Password?</a>
+                    <button type="submit" class="btn btn-primary">Sign In</button>
+                </div>
+                <p class="text-center text-gray-600 text-sm">Don't have an account? <a href="#" class="text-blue-500 hover:text-blue-800 font-bold" onclick="closeModal('loginModal'); openModal('signupModal'); return false;">Sign Up</a></p>
+            </form>
+        </div>
+    </div>
+
+    <div id="signupModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('signupModal')">&times;</span>
+            <h2 class="text-3xl font-bold text-center text-blue-700 mb-6">Sign Up</h2>
+            <form id="signupForm" class="space-y-4">
+                <div class="form-group">
+                    <label for="signupName" class="block text-gray-700 text-sm font-bold mb-2">Name:</label>
+                    <input type="text" id="signupName" name="signupName" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupEmail" class="block text-gray-700 text-sm font-bold mb-2">Email:</label>
+                    <input type="email" id="signupEmail" name="signupEmail" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword" class="block text-gray-700 text-sm font-bold mb-2">Password:</label>
+                    <input type="password" id="signupPassword" name="signupPassword" class="form-input" required>
+                    <p id="passwordStrength" class="text-xs mt-1 text-gray-500"></p>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword" class="block text-gray-700 text-sm font-bold mb-2">Confirm Password:</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-input" required>
+                </div>
+                <div class="flex items-center justify-center">
+                    <button type="submit" class="btn btn-primary">Register</button>
+                </div>
+                <p class="text-center text-gray-600 text-sm">Already have an account? <a href="#" class="text-blue-500 hover:text-blue-800 font-bold" onclick="closeModal('signupModal'); openModal('loginModal'); return false;">Login</a></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/script.js"></script>
+</body>
+</html>
