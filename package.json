@@ -1,0 +1,15 @@
+{
+  "name": "signbridge",
+  "version": "2.0.0",
+  "private": true,
+  "description": "An accessible ASL learning workspace with a dependency-free Python backend",
+  "scripts": {
+    "start": "python3 server.py",
+    "test": "python3 -m unittest discover -s tests -p 'test_*.py' -v",
+    "test:browser": "node tests/smoke.cjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1",
+    "@sparticuz/chromium": "153.0.0"
+  }
+}

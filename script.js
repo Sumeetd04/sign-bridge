@@ -1,1594 +1,917 @@
-// ===== COMPLETE VOICE TO SIGN IMPLEMENTATION =====
-// Add this code to your script.js file (replace the existing voice-to-sign section)
-
-// Voice to Sign specific variables
-let speechRecognition = null;
-let isVoiceToSignListening = false;
-
-// Comprehensive mapping for voice commands to sign language images
-const voiceToSignMapping = {
-    // Greetings
-    "hello": {
-        emoji: "👋",
-        description: "Hand wave"
-    },
-    "hi": {
-        emoji: "👋",
-        description: "Hand wave"
-    },
-    "goodbye": {
-        emoji: "👋",
-        description: "Wave goodbye"
-    },
-    "bye": {
-        emoji: "👋",
-        description: "Wave goodbye"
-    },
-    "good morning": {
-        emoji: "🌅",
-        description: "Sun rising + wave"
-    },
-    "good afternoon": {
-        emoji: "☀️",
-        description: "Sun + wave"
-    },
-    "good evening": {
-        emoji: "🌙",
-        description: "Moon + wave"
-    },
-    "good night": {
-        emoji: "🌙✨",
-        description: "Sleep sign"
-    },
-    
-    // Politeness
-    "thank you": {
-        emoji: "🙏",
-        description: "Hand to chin, move forward"
-    },
-    "thanks": {
-        emoji: "🙏",
-        description: "Hand to chin, move forward"
-    },
-    "please": {
-        emoji: "🤲",
-        description: "Flat hand circles on chest"
-    },
-    "sorry": {
-        emoji: "😔",
-        description: "Fist circles on chest"
-    },
-    "excuse me": {
-        emoji: "👉",
-        description: "Tap on shoulder"
-    },
-    "you're welcome": {
-        emoji: "👐",
-        description: "Palms up, move outward"
-    },
-    
-    // Basic responses
-    "yes": {
-        emoji: "👍",
-        description: "Nodding fist"
-    },
-    "no": {
-        emoji: "👎",
-        description: "Shaking hand"
-    },
-    "maybe": {
-        emoji: "🤷",
-        description: "Hands open, shrug"
-    },
-    "ok": {
-        emoji: "👌",
-        description: "OK hand shape"
-    },
-    "okay": {
-        emoji: "👌",
-        description: "OK hand shape"
-    },
-    
-    // Questions
-    "what": {
-        emoji: "❓",
-        description: "Index fingers outward"
-    },
-    "where": {
-        emoji: "📍",
-        description: "Index finger moves"
-    },
-    "when": {
-        emoji: "⌚",
-        description: "Tap wrist"
-    },
-    "why": {
-        emoji: "🤔",
-        description: "Forehead touch"
-    },
-    "how": {
-        emoji: "❔",
-        description: "Palms up"
-    },
-    "who": {
-        emoji: "👤",
-        description: "Circle near mouth"
-    },
-    
-    // Common phrases
-    "help": {
-        emoji: "🆘",
-        description: "Thump on palm"
-    },
-    "help me": {
-        emoji: "🆘🙏",
-        description: "Thump on palm + point"
-    },
-    "i love you": {
-        emoji: "🤟",
-        description: "ILY hand shape"
-    },
-    "my name is": {
-        emoji: "👤",
-        description: "Point to self"
-    },
-    "nice to meet you": {
-        emoji: "🤝",
-        description: "Handshake motion"
-    },
-    
-    // Family
-    "mother": {
-        emoji: "👩",
-        description: "Thumb to chin"
-    },
-    "mom": {
-        emoji: "👩",
-        description: "Thumb to chin"
-    },
-    "father": {
-        emoji: "👨",
-        image: "https://images.unsplash.com/photo--cb58502866ab?w=300&h=300&fit=crop",
-        description: "Thumb to forehead"
-    },
-    "dad": {
-        emoji: "👨",
-        image: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=300&h=300&fit=crop",
-        description: "Thumb to forehead"
-    },
-    "brother": {
-        emoji: "👦",
-        image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=300&h=300&fit=crop",
-        description: "Two L-hands"
-    },
-    "sister": {
-        emoji: "👧",
-        image: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=300&h=300&fit=crop",
-        description: "Index to nose"
-    },
-    "family": {
-        emoji: "👨‍👩‍👧‍👦",
-        image: "https://images.unsplash.com/photo-1518495978942-83cdb633d7d3?w=300&h=300&fit=crop",
-        description: "Two F-hands circle"
-    },
-    
-    // Common words
-    "water": {
-        emoji: "💧",
-        image: "https://images.unsplash.com/photo-1541670315-e5e4b03abfc9?w=300&h=300&fit=crop",
-        description: "W-shaped tap chin"
-    },
-    "food": {
-        emoji: "🍎",
-        image: "https://images.unsplash.com/photo-1567469371750-fdcb4bbfec87?w=300&h=300&fit=crop",
-        description: "Flat hand to mouth"
-    },
-    "eat": {
-        emoji: "🍴",
-        description: "Hand to mouth"
-    },
-    "drink": {
-        emoji: "🥤",
-        description: "C-shape to mouth"
-    },
-    "bathroom": {
-        emoji: "🚽",
-        description: "T-shaped shake"
-    },
-    "home": {
-        emoji: "🏠",
-        description: "Flat hands together"
-    },
-    "school": {
-        emoji: "🏫",
-        description: "Clapping hands"
-    },
-    "work": {
-        emoji: "💼",
-        description: "S-shaped wrists"
-    },
-    
-    // Emotions
-    "happy": {
-        emoji: "😊",
-        description: "Brush chest upward"
-    },
-    "sad": {
-        emoji: "😢",
-        description: "Fingers down face"
-    },
-    "angry": {
-        emoji: "😠",
-        description: "Claw hands at chest"
-    },
-    "tired": {
-        emoji: "😴",
-        description: "Palms drop"
-    },
-    "sick": {
-        emoji: "🤒",
-        description: "Middle finger to forehead"
-    },
-    
-    // Add more signs here
-    "good luck": {
-        emoji: "🍀",
-        description: "L-shape forward"
-    },
-    "how are you": {
-        emoji: "👋❓",
-        description: "Wave + question"
-    }
+"use strict";
+const $ = (s, root = document) => root.querySelector(s);
+const esc = (s) =>
+  String(s).replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        c
+      ],
+  );
+const icons = {
+  home: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  learn:
+    '<path d="M12 6c-3-3-7-3-10-2v15c4-1 7-1 10 2 3-3 6-3 10-2V4c-3-1-7-1-10 2Z"/><path d="M12 6v15"/>',
+  dictionary:
+    '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 3v18m4-12h5m-5 4h5"/>',
+  quiz: '<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z"/>',
+  voice:
+    '<rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/>',
+  speech:
+    '<path d="m11 4-6 5H2v6h3l6 5Zm4 4a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/>',
+  camera:
+    '<rect x="2" y="6" width="14" height="14" rx="3"/><path d="m16 10 6-4v14l-6-4M5 6l2-3h4l2 3"/>',
+  progress: '<path d="M4 20V10m7 10V4m7 16v-7M2 22h20"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  check: '<path d="m5 12 4 4L19 6"/>',
+  bookmark: '<path d="M6 3h12v18l-6-4-6 4Z"/>',
 };
-
-// Initialize Speech Recognition
-function initializeSpeechRecognition() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
-    if (!SpeechRecognition) {
-        console.error('Speech recognition not supported');
-        showNotification('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.', 'error');
-        
-        const startBtn = document.getElementById('startVoiceToSign');
-        if (startBtn) {
-            startBtn.disabled = true;
-            startBtn.innerHTML = '❌ Not Supported';
-            startBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
-            startBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
-        }
-        return null;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
-    recognition.maxAlternatives = 1;
-
-    return recognition;
-}
-
-// Setup Speech Recognition Event Handlers
-function setupSpeechRecognition() {
-    if (!speechRecognition) return;
-
-    const startBtn = document.getElementById('startVoiceToSign');
-    const voiceStatus = document.getElementById('voiceStatus');
-    const voiceInputDisplay = document.getElementById('voiceInputDisplay');
-    const signOutputDisplay = document.getElementById('signOutputDisplay');
-
-    speechRecognition.onstart = () => {
-        console.log('Speech recognition started');
-        isVoiceToSignListening = true;
-        
-        if (startBtn) {
-            startBtn.innerHTML = `
-                <svg class="w-6 h-6 mr-2 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z"/>
-                </svg>
-                Stop Listening
-            `;
-            startBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
-            startBtn.classList.add('bg-red-500', 'hover:bg-red-600');
-        }
-        
-        if (voiceStatus) {
-            voiceStatus.textContent = '🎤 Listening... Speak now!';
-            voiceStatus.className = 'text-lg text-green-600 font-semibold animate-pulse';
-        }
-        
-        if (voiceInputDisplay) {
-            voiceInputDisplay.textContent = 'Listening...';
-            voiceInputDisplay.style.color = '#059669';
-        }
+const icon = (name) =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name] || icons.home}</svg>`;
+const emoji = value => `<img class="emoji" src="/assets/emoji/${[...value].filter(c=>c.codePointAt(0)!==0xfe0f).map(c=>c.codePointAt(0).toString(16)).join('-')}.svg" alt="" aria-hidden="true">`;
+const signs = [
+  {
+    id: "hello",
+    word: "Hello",
+    category: "Greetings",
+    emoji: "👋",
+    guide:
+      "Begin with your open, flat dominant hand near your forehead, palm facing out. Move it outward, away from your forehead, like a small salute.",
+  },
+  {
+    id: "thanks",
+    word: "Thank you",
+    category: "Greetings",
+    emoji: "🤲",
+    guide:
+      "Place the fingertips of your flat dominant hand at your chin, palm facing you. Move the hand forward and slightly down toward the person you are thanking.",
+  },
+  {
+    id: "please",
+    word: "Please",
+    category: "Everyday",
+    emoji: "✋",
+    guide:
+      "Place your open, flat dominant hand on your chest, palm inward. Move it in a small circular motion.",
+  },
+  {
+    id: "sorry",
+    word: "Sorry",
+    category: "Greetings",
+    emoji: "✊",
+    guide:
+      "Make a fist with your dominant hand, place it on your chest, and move it in a small circle.",
+  },
+  {
+    id: "yes",
+    word: "Yes",
+    category: "Everyday",
+    emoji: "✊",
+    guide:
+      "Make a fist with your dominant hand and hold it up. Bend your wrist up and down, like a head nodding yes.",
+  },
+  {
+    id: "no",
+    word: "No",
+    category: "Everyday",
+    emoji: "🤏",
+    guide:
+      "Extend your index and middle fingers with your thumb out. Bring both fingertips down to meet your thumb, like a small closing beak.",
+  },
+  {
+    id: "love",
+    word: "I love you",
+    category: "Greetings",
+    emoji: "🤟",
+    guide:
+      "Extend your thumb, index finger, and little finger. Keep your middle and ring fingers folded down, with your palm facing the person.",
+  },
+  {
+    id: "help",
+    word: "Help",
+    category: "Everyday",
+    emoji: "🤝",
+    guide:
+      "Make a fist with your dominant hand, thumb pointing up. Rest it on your other open palm and lift both hands together.",
+  },
+  {
+    id: "a",
+    word: "A",
+    category: "Alphabet",
+    emoji: "✊",
+    guide:
+      "Make a fist with all four fingers folded into your palm. Keep your thumb straight along the side of your index finger, not across the front.",
+  },
+  {
+    id: "b",
+    word: "B",
+    category: "Alphabet",
+    emoji: "🖐",
+    guide:
+      "Hold your hand upright, palm forward, four fingers straight and together. Fold your thumb across your palm.",
+  },
+  {
+    id: "c",
+    word: "C",
+    category: "Alphabet",
+    emoji: "🤏",
+    guide:
+      "Curve your four fingers and thumb into a rounded C shape. Keep the fingers together and the thumb opposite them.",
+  },
+  {
+    id: "d",
+    word: "D",
+    category: "Alphabet",
+    emoji: "☝️",
+    guide:
+      "Point your index finger straight up. Curve your other three fingers to touch your thumb, forming a circle.",
+  },
+  {
+    id: "one",
+    word: "One",
+    category: "Numbers",
+    emoji: "☝️",
+    guide:
+      "Hold up only your index finger. For counting one through five in isolation, the palm typically faces you.",
+  },
+  {
+    id: "two",
+    word: "Two",
+    category: "Numbers",
+    emoji: "✌️",
+    guide:
+      "Extend your index and middle fingers in a V, with your other fingers folded into your palm. In isolated counting, face your palm toward you.",
+  },
+  {
+    id: "three",
+    word: "Three",
+    category: "Numbers",
+    emoji: "🤟",
+    guide:
+      "Extend your thumb, index finger, and middle finger. Fold your ring and little fingers into your palm. This is different from the I-love-you handshape.",
+  },
+  {
+    id: "five",
+    word: "Five",
+    category: "Numbers",
+    emoji: "🖐",
+    guide:
+      "Extend your thumb and all four fingers and spread them apart. In isolated counting, your palm typically faces you.",
+  },
+];
+const lessons = [
+  {
+    id: "alphabet",
+    title: "The ABCs of connection",
+    subtitle: "Get to know the building blocks of ASL.",
+    category: "The essentials",
+    level: "Beginner",
+    time: 8,
+    emoji: "🤟",
+    color: "",
+    signs: ["a", "b", "c", "d"],
+  },
+  {
+    id: "greetings",
+    title: "A hello goes a long way",
+    subtitle: "Start a conversation. Make someone’s day.",
+    category: "Everyday conversations",
+    level: "Beginner",
+    time: 6,
+    emoji: "👋",
+    color: "lilac",
+    signs: ["hello", "thanks", "sorry", "love"],
+  },
+  {
+    id: "numbers",
+    title: "Make every number count",
+    subtitle: "Learn to count, one sign at a time.",
+    category: "Numbers & counting",
+    level: "Beginner",
+    time: 5,
+    emoji: "✌️",
+    color: "peach",
+    signs: ["one", "two", "three", "five"],
+  },
+  {
+    id: "everyday",
+    title: "Little signs, everyday moments",
+    subtitle: "Useful expressions for your daily life.",
+    category: "Daily essentials",
+    level: "Beginner",
+    time: 7,
+    emoji: "✋",
+    color: "green",
+    signs: ["please", "yes", "no", "help"],
+  },
+];
+let state = { completed: [], saved: [], quizScores: [], activity: [] },
+  user = null,
+  route = "home",
+  search = "",
+  category = "All signs",
+  savedOnly = false,
+  quiz = null,
+  recognition = null,
+  stream = null,
+  lessonIndex = 0,
+  activeLesson = null;
+const today = () => new Date().toLocaleDateString("en-CA");
+function loadLocal() {
+  try {
+    state = {
+      ...state,
+      ...JSON.parse(localStorage.getItem("signbridge-progress") || "{}"),
     };
-
-    speechRecognition.onresult = (event) => {
-        let interimTranscript = '';
-        let finalTranscript = '';
-
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-                finalTranscript += transcript + ' ';
-            } else {
-                interimTranscript += transcript;
-            }
-        }
-
-        // Display current transcript
-        if (voiceInputDisplay) {
-            const displayText = (finalTranscript + interimTranscript).trim();
-            voiceInputDisplay.textContent = displayText || 'Listening...';
-            voiceInputDisplay.style.color = finalTranscript ? '#1f2937' : '#6b7280';
-        }
-
-        // Process final transcript
-        if (finalTranscript.trim()) {
-            processVoiceCommand(finalTranscript.trim().toLowerCase());
-        }
-    };
-
-    speechRecognition.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-        
-        let errorMessage = 'Error with speech recognition. ';
-        switch (event.error) {
-            case 'no-speech':
-                errorMessage = 'No speech detected. Please try speaking again.';
-                // Don't stop for no-speech error, just notify
-                showNotification(errorMessage, 'info');
-                return;
-            case 'audio-capture':
-                errorMessage = 'No microphone found. Please ensure a microphone is connected.';
-                break;
-            case 'not-allowed':
-                errorMessage = 'Microphone access denied. Please allow microphone permissions in your browser settings.';
-                break;
-            case 'network':
-                errorMessage = 'Network error. Please check your internet connection.';
-                break;
-            default:
-                errorMessage += 'Please try again. Error: ' + event.error;
-        }
-        
-        showNotification(errorMessage, 'error');
-        stopVoiceToSign();
-    };
-
-    speechRecognition.onend = () => {
-        console.log('Speech recognition ended');
-        if (isVoiceToSignListening) {
-            // Automatically restart if we didn't explicitly stop
-            console.log('Restarting speech recognition...');
-            try {
-                speechRecognition.start();
-            } catch (error) {
-                console.error('Error restarting recognition:', error);
-                stopVoiceToSign();
-            }
-        }
-    };
+  } catch {}
 }
-// Process voice commands and display sign language
-function processVoiceCommand(transcript) {
-    console.log('Processing:', transcript);
-    
-    const signOutputDisplay = document.getElementById('signOutputDisplay');
-    if (!signOutputDisplay) return;
-
-    // Clean the transcript
-    const cleanTranscript = transcript.toLowerCase().trim();
-    
-    // Look for exact matches first
-    let signData = voiceToSignMapping[cleanTranscript];
-    let matchedPhrase = cleanTranscript;
-    
-    // If no exact match, look for partial matches (longest first)
-    if (!signData) {
-        const sortedPhrases = Object.keys(voiceToSignMapping).sort((a, b) => b.length - a.length);
-        
-        for (const phrase of sortedPhrases) {
-            if (cleanTranscript.includes(phrase)) {
-                signData = voiceToSignMapping[phrase];
-                matchedPhrase = phrase;
-                break;
-            }
-        }
-    }
-    
-    // Display result
-    if (signData) {
-        signOutputDisplay.innerHTML = `
-            <div class="flex flex-col md:flex-row gap-6 animate-fadeIn">
-                <!-- Sign Visualization (Left) -->
-                <div class="md:w-1/2">
-                    <div class="bg-white p-6 rounded-xl shadow-lg border-2 border-blue-200 h-full">
-                        <div class="text-center">
-                            <!-- Sign Image -->
-                            <div class="mb-4">
-                                <img src="${signData.image}" 
-                                     alt="Sign for ${matchedPhrase}" 
-                                     class="w-64 h-64 mx-auto rounded-lg shadow-lg object-cover border-4 border-blue-300"
-                                     onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=300&h=300&fit=crop'">
-                                <div class="mt-2 text-sm text-gray-500">${signData.description}</div>
-                            </div>
-                            
-                            <!-- Sign Emoji -->
-                            <div class="text-6xl mb-3">${signData.emoji}</div>
-                            
-                            <!-- Sign Name -->
-                            <div class="inline-block bg-blue-50 px-4 py-2 rounded-full">
-                                <p class="text-blue-700 font-bold text-xl">"${matchedPhrase}"</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Sign Information (Right) -->
-                <div class="md:w-1/2">
-                    <div class="bg-green-50 p-6 rounded-xl shadow-lg border-2 border-green-200 h-full">
-                        <h3 class="text-xl font-bold text-green-700 mb-4 flex items-center">
-                            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            Sign Language Information
-                        </h3>
-                        
-                        <!-- How to Make the Sign -->
-                        <div class="mb-6">
-                            <h4 class="font-semibold text-gray-700 mb-2">How to make this sign:</h4>
-                            <div class="bg-white p-4 rounded-lg">
-                                <p class="text-gray-600">${signData.description}</p>
-                                <div class="mt-3 flex space-x-2">
-                                    <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">Hand Shape</span>
-                                    <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">Movement</span>
-                                    <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">Location</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Practice Tips -->
-                        <div class="mb-6">
-                            <h4 class="font-semibold text-gray-700 mb-2">Practice Tips:</h4>
-                            <ul class="space-y-2 text-sm text-gray-600">
-                                <li class="flex items-start">
-                                    <span class="text-green-500 mr-2">✓</span>
-                                    <span>Keep your movements smooth and clear</span>
-                                </li>
-                                <li class="flex items-start">
-                                    <span class="text-green-500 mr-2">✓</span>
-                                    <span>Maintain eye contact while signing</span>
-                                </li>
-                                <li class="flex items-start">
-                                    <span class="text-green-500 mr-2">✓</span>
-                                    <span>Practice in front of a mirror</span>
-                                </li>
-                            </ul>
-                        </div>
-                        
-                        <!-- Voice Button -->
-                        <button onclick="speakText('${matchedPhrase}')" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
-                            </svg>
-                            🔊 Say "${matchedPhrase}"
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        // Speak the recognized text
-        speakText(matchedPhrase);
-        
-        // Show success notification
-        showNotification(`Found sign for: "${matchedPhrase}"`, 'success');
-    } else {
-        signOutputDisplay.innerHTML = `
-            <div class="text-center p-8">
-                <div class="text-7xl mb-4">🤔</div>
-                <p class="text-gray-700 font-semibold text-xl mb-2">No sign found for:</p>
-                <p class="text-blue-600 text-2xl font-bold mb-6">"${cleanTranscript}"</p>
-                
-                <div class="bg-blue-50 p-6 rounded-xl border-2 border-blue-200 max-w-md mx-auto">
-                    <h4 class="text-lg font-semibold text-blue-800 mb-3">💡 Try saying one of these:</h4>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-white p-3 rounded-lg text-center hover:shadow-md transition duration-200 cursor-pointer" onclick="speakAndShow('hello')">
-                            <div class="text-2xl mb-1">👋</div>
-                            <p class="font-medium text-blue-700">hello</p>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg text-center hover:shadow-md transition duration-200 cursor-pointer" onclick="speakAndShow('thank you')">
-                            <div class="text-2xl mb-1">🙏</div>
-                            <p class="font-medium text-blue-700">thank you</p>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg text-center hover:shadow-md transition duration-200 cursor-pointer" onclick="speakAndShow('help')">
-                            <div class="text-2xl mb-1">🆘</div>
-                            <p class="font-medium text-blue-700">help</p>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg text-center hover:shadow-md transition duration-200 cursor-pointer" onclick="speakAndShow('water')">
-                            <div class="text-2xl mb-1">💧</div>
-                            <p class="font-medium text-blue-700">water</p>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg text-center hover:shadow-md transition duration-200 cursor-pointer" onclick="speakAndShow('yes')">
-                            <div class="text-2xl mb-1">👍</div>
-                            <p class="font-medium text-blue-700">yes</p>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg text-center hover:shadow-md transition duration-200 cursor-pointer" onclick="speakAndShow('no')">
-                            <div class="text-2xl mb-1">👎</div>
-                            <p class="font-medium text-blue-700">no</p>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg text-center hover:shadow-md transition duration-200 cursor-pointer" onclick="speakAndShow('i love you')">
-                            <div class="text-2xl mb-1">🤟</div>
-                            <p class="font-medium text-blue-700">I love you</p>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg text-center hover:shadow-md transition duration-200 cursor-pointer" onclick="speakAndShow('how are you')">
-                            <div class="text-2xl mb-1">👋❓</div>
-                            <p class="font-medium text-blue-700">how are you</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        showNotification('Sign not found. Try another phrase!', 'info');
-    }
+function persist() {
+  localStorage.setItem("signbridge-progress", JSON.stringify(state));
+  if (user)
+    api("/api/progress", { method: "PUT", body: state }).catch(() =>
+      toast("Sync unavailable. Your progress is saved on this device."),
+    );
 }
-
-// New function: Speak and show sign
-function speakAndShow(text) {
-    speakText(text);
-    processVoiceCommand(text);
+function activity() {
+  if (!state.activity.includes(today())) state.activity.push(today());
 }
-
-// Text to Speech function
-function speakText(text) {
-    if ('speechSynthesis' in window) {
-        // Cancel any ongoing speech
-        window.speechSynthesis.cancel();
-        
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.9;
-        utterance.pitch = 1;
-        utterance.volume = 0.8;
-        
-        utterance.onstart = () => {
-            console.log('Speaking:', text);
-        };
-        
-        utterance.onerror = (event) => {
-            console.error('Speech synthesis error:', event);
-        };
-        
-        window.speechSynthesis.speak(utterance);
-    }
+function toast(text) {
+  $("#toast").textContent = text;
+  $("#toast").classList.add("visible");
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => $("#toast").classList.remove("visible"), 3500);
 }
-
-// Start Voice to Sign
-function startVoiceToSign() {
-    if (isVoiceToSignListening) {
-        stopVoiceToSign();
-        return;
-    }
-
-    if (!speechRecognition) {
-        speechRecognition = initializeSpeechRecognition();
-        if (!speechRecognition) return;
-        setupSpeechRecognition();
-    }
-
-    try {
-        speechRecognition.start();
-        showNotification('Voice recognition started! Start speaking...', 'success');
-    } catch (error) {
-        console.error('Error starting speech recognition:', error);
-        if (error.message.includes('already started')) {
-            // Already running, just update UI
-            isVoiceToSignListening = true;
-        } else {
-            showNotification('Failed to start voice recognition. Please try again.', 'error');
-        }
-    }
+async function api(path, options = {}) {
+  const response = await fetch(path, {
+    ...options,
+    headers: { "Content-Type": "application/json" },
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  });
+  const data = await response.json();
+  if (!response.ok)
+    throw new Error(data.error || "Something went wrong. Please try again.");
+  return data;
 }
-
-// Stop Voice to Sign
-function stopVoiceToSign() {
-    if (speechRecognition && isVoiceToSignListening) {
-        speechRecognition.stop();
-        isVoiceToSignListening = false;
-    }
-    
-    const startBtn = document.getElementById('startVoiceToSign');
-    const voiceStatus = document.getElementById('voiceStatus');
-    const voiceInputDisplay = document.getElementById('voiceInputDisplay');
-    const signOutputDisplay = document.getElementById('signOutputDisplay');
-    
-    if (startBtn) {
-        startBtn.innerHTML = `
-            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
-            </svg>
-            Start Listening
-        `;
-        startBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
-        startBtn.classList.add('bg-green-500', 'hover:bg-green-600');
-    }
-    
-    if (voiceStatus) {
-        voiceStatus.textContent = 'Click "Start Listening" to activate your microphone.';
-        voiceStatus.className = 'text-lg text-gray-700';
-    }
-    
-    if (voiceInputDisplay) {
-        voiceInputDisplay.textContent = 'Your spoken words will appear here...';
-        voiceInputDisplay.style.color = '#6b7280';
-    }
-    
-    if (signOutputDisplay) {
-        signOutputDisplay.innerHTML = `
-            <div class="text-center p-6">
-                <div class="text-6xl mb-4">👋</div>
-                <p class="text-gray-700 font-semibold text-lg mb-2">Voice to Sign Converter</p>
-                <p class="text-gray-500 text-sm mb-4">Click "Start Listening" and speak to see sign language equivalents</p>
-                <div class="mt-4 p-4 bg-blue-50 rounded-lg">
-                    <p class="text-blue-800 text-sm font-semibold mb-2">💬 Try saying:</p>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-blue-600">
-                        <span class="bg-white px-2 py-1 rounded">hello</span>
-                        <span class="bg-white px-2 py-1 rounded">thank you</span>
-                        <span class="bg-white px-2 py-1 rounded">please</span>
-                        <span class="bg-white px-2 py-1 rounded">help</span>
-                        <span class="bg-white px-2 py-1 rounded">water</span>
-                        <span class="bg-white px-2 py-1 rounded">yes</span>
-                        <span class="bg-white px-2 py-1 rounded">no</span>
-                        <span class="bg-white px-2 py-1 rounded">i love you</span>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    showNotification('Voice recognition stopped', 'info');
+function nav() {
+  const links = [
+    ["home", "Overview", "home"],
+    ["learn", "Learn sign language", "learn"],
+    ["dictionary", "Sign dictionary", "dictionary"],
+    ["quiz", "Quizzes & practice", "quiz"],
+    ["divider"],
+    ["voice", "Voice to sign", "voice"],
+    ["speech", "Text to speech", "speech"],
+    ["camera", "Camera practice", "camera"],
+    ["divider"],
+    ["progress", "My progress", "progress"],
+  ];
+  $("#navigation").innerHTML = links
+    .map(([id, label, ic]) =>
+      id === "divider"
+        ? '<div class="nav-divider"></div>'
+        : `<a class="nav-link ${route === id ? "active" : ""}" href="#${id}" ${route === id ? 'aria-current="page"' : ""}>${icon(ic)}<span>${label}</span>${id === "voice" ? '<span class="nav-tag">TRY IT</span>' : ""}</a>`,
+    )
+    .join("");
+  $("#profile-button").textContent = user
+    ? user.name.charAt(0).toUpperCase()
+    : "S";
+  $("#profile-button").setAttribute(
+    "aria-label",
+    user ? `Account: ${user.name}` : "Sign in or create an account",
+  );
 }
-
-// ===== MISSING FUNCTIONS - ADD THESE =====
-
-// Show notification function
-function showNotification(message, type = 'info') {
-    // Create notification element
-    const notification = document.createElement('div');
-    
-    // Set colors based on type
-    let bgColor, textColor, icon;
-    switch (type) {
-        case 'success':
-            bgColor = 'bg-green-100';
-            textColor = 'text-green-800';
-            icon = '✅';
-            break;
-        case 'error':
-            bgColor = 'bg-red-100';
-            textColor = 'text-red-800';
-            icon = '❌';
-            break;
-        case 'warning':
-            bgColor = 'bg-yellow-100';
-            textColor = 'text-yellow-800';
-            icon = '⚠️';
-            break;
-        default:
-            bgColor = 'bg-blue-100';
-            textColor = 'text-blue-800';
-            icon = 'ℹ️';
-    }
-    
-    notification.innerHTML = `
-        <div class="fixed top-4 right-4 z-50 ${bgColor} ${textColor} px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 animate-fadeIn" style="min-width: 300px;">
-            <span class="text-xl">${icon}</span>
-            <span class="font-medium">${message}</span>
-        </div>
-    `;
-    
-    // Add to body
-    document.body.appendChild(notification);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transition = 'opacity 0.5s';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 500);
-    }, 3000);
+function heading(title, sub, extra = "") {
+  return `<div class="page-heading"><div><h1>${title}</h1><p>${sub}</p></div>${extra}</div>`;
 }
-
-// Toggle dropdown function
-function toggleDropdown(event, dropdownId) {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    const dropdown = document.getElementById(dropdownId);
-    const allDropdowns = document.querySelectorAll('.dropdown-menu');
-    
-    // Close all other dropdowns
-    allDropdowns.forEach(d => {
-        if (d.id !== dropdownId) {
-            d.style.display = 'none';
-        }
+function streak() {
+  let n = 0;
+  const d = new Date();
+  if (!state.activity.includes(today())) d.setDate(d.getDate() - 1);
+  while (state.activity.includes(d.toLocaleDateString("en-CA"))) {
+    n++;
+    d.setDate(d.getDate() - 1);
+  }
+  return n;
+}
+function stats() {
+  const learned = new Set(
+    lessons
+      .filter((l) => state.completed.includes(l.id))
+      .flatMap((l) => l.signs),
+  ).size;
+  return `<div class="stats"><div class="stat"><span class="stat-icon">${icon("learn")}</span><div><div class="stat-value">${learned} <small>/ ${signs.length}</small></div><div class="stat-label">Signs in completed lessons</div></div></div><div class="stat"><span class="stat-icon">${icon("check")}</span><div><div class="stat-value">${state.completed.length} <small>/ ${lessons.length}</small></div><div class="stat-label">Lessons completed</div></div></div><div class="stat"><span class="stat-icon">${icon("quiz")}</span><div><div class="stat-value">${state.quizScores.length ? Math.max(...state.quizScores.map((s) => Math.round((s.score / s.total) * 100))) + "%" : "—"}</div><div class="stat-label">Personal best quiz score</div></div></div></div>`;
+}
+function lessonCard(l) {
+  return `<button class="lesson-card" data-lesson="${l.id}"><div class="lesson-cover ${l.color}"><span class="lesson-badge">${state.completed.includes(l.id) ? "✓ Completed" : l.level}</span><span class="hand" aria-hidden="true">${emoji(l.emoji)}</span></div><div class="lesson-body"><div class="eyebrow">${l.category}</div><h3>${l.title}</h3><p>${l.subtitle}</p><div class="lesson-meta"><span>◷ &nbsp;${l.time} min <span> · </span> ${l.signs.length} signs</span><span>↗</span></div><div class="mini-progress"><i style="width:${state.completed.includes(l.id) ? 100 : 0}%"></i></div></div></button>`;
+}
+const handArt = `<svg class="hand-art" viewBox="0 0 250 270" aria-hidden="true"><defs><linearGradient id="skin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e9b78f"/><stop offset="1" stop-color="#c78d69"/></linearGradient><linearGradient id="sleeve" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4e6955"/><stop offset="1" stop-color="#2e4d3e"/></linearGradient></defs><path d="m88 205-4-50-40-52q-11-16 1-22 10-5 20 8l24 24-13-77q-2-18 10-20 12-2 15 17l13 69 10-13 18 2 12 16 17-56q5-17 16-12 10 4 5 21l-15 66q-3 18-2 33l-2 42-24 24Z" fill="url(#skin)" stroke="#b27b59" stroke-width="1.6"/><path d="m111 105-5-23q-2-12 8-14 10-2 13 10l8 29m-5-6-2-29q-1-11 9-12 10 0 12 11l4 33" fill="url(#skin)" stroke="#b27b59" stroke-width="1.6"/><path d="m116 105 27-5q13-3 15 9 0 9-12 12l-22 4q23 9 26 29m-56-9q13-12 29-11m-23 26q20-8 34 4m-25 21 25 1" fill="none" stroke="#b37c59" stroke-width="2" stroke-linecap="round"/><path d="m81 202 98-1 15 65H73Z" fill="url(#sleeve)"/><path d="m81 202 98-1 2 15-103 2Z" fill="#729077"/><path d="m88 224-3 42m16-42-2 42m64-44 7 44m-20-44 5 44" stroke="#ffffff16" stroke-width="2"/></svg>`;
+function home() {
+  const next =
+    lessons.find((l) => !state.completed.includes(l.id)) || lessons[0];
+  return (
+    heading(
+      `A little practice. A world of connection<span class="coral">.</span>`,
+      `Welcome${user ? " back, " + esc(user.name.split(" ")[0]) : " to SignBridge"}. Let’s make meaningful connections, one sign at a time.`,
+      `<div class="streak">${emoji("☀️")} <b>${streak()}-day streak</b></div>`,
+    ) +
+    `<section class="hero"><div class="hero-copy"><div class="eyebrow">A language that brings us closer</div><h2>Some conversations<br>start with a <em>sign.</em></h2><p>Discover the beauty of sign language. Learn at your own pace and open the door to a more inclusive world.</p><div class="hero-actions"><button class="button dark" data-lesson="${next.id}">${state.completed.length ? "Continue learning" : "Start your journey"} <span>↗</span></button><span class="hero-note">◉ &nbsp; Free to learn. For everyone.</span></div></div><div class="hero-art"><div class="orbit"></div><div class="orbit two"></div><div class="orbit three"></div>${handArt}<div class="art-label top">${emoji("🤟")} &nbsp; A small gesture. A big meaning.</div><div class="art-label bottom"><span style="color:#a8b58a">✦</span> Connection needs no sound.</div><span class="spark">✧</span><span class="spark s2">✦</span></div></section>` +
+    stats() +
+    `<div class="learning-layout"><section><div class="section-heading"><h2>Your next little step</h2><a href="#learn" class="text-link">View all lessons <span>↗</span></a></div><div class="lesson-grid">${lessons.slice(0, 3).map(lessonCard).join("")}</div></section><aside class="daily-card"><div class="eyebrow">✦ &nbsp; Sign of the day <span>↗</span></div><div class="daily-sign" aria-hidden="true">${emoji("🤲")}</div><h3>Thank you</h3><p>Two simple words.<br>A whole lot of appreciation.</p><button class="button" data-sign="thanks">Learn this sign <span>↗</span></button></aside></div><div class="bottom-banner"><span class="banner-icon">✧</span><div><h3>Ready to put your signs to the test?</h3><p>A little challenge is a great way to grow. Try a quick practice quiz.</p></div><button class="button outline" data-route="quiz">Let’s practice <span>↗</span></button></div>`
+  );
+}
+function learn() {
+  return (
+    heading(
+      "Every sign is a new beginning.",
+      "Short, thoughtful lessons to help you build confidence in ASL.",
+    ) +
+    `<div class="notice">New here? Start with the alphabet, then explore greetings. These are written beginner guides, not a substitute for instruction from fluent Deaf signers.</div><div class="lesson-full-grid">${lessons.map(lessonCard).join("")}</div><div class="bottom-banner"><span class="banner-icon">♡</span><div><h3>Connection starts with respect.</h3><p>Get someone’s attention with a gentle wave. Keep eye contact, and never grab a person’s hands while they sign.</p></div><a href="#about" class="button outline">Learn more ↗</a></div>`
+  );
+}
+function dictionary() {
+  return (
+    heading(
+      "A world of signs, at your fingertips.",
+      "Find a sign, learn its movement, and make it your own.",
+    ) +
+    `<div class="toolbar"><label class="sr-only" for="sign-search">Search signs</label><input class="search" id="sign-search" type="search" placeholder="Search for a word or expression…" value="${esc(search)}"><button class="button ${savedOnly ? "dark" : "outline"}" id="saved-toggle">${savedOnly ? "♥ Saved signs" : "♡ Show saved"}</button></div><div class="chips">${["All signs", "Alphabet", "Greetings", "Numbers", "Everyday"].map((c) => `<button class="chip ${category === c ? "active" : ""}" data-category="${c}">${c}</button>`).join("")}</div><div class="dictionary-grid" id="sign-grid">${dictionaryCards()}</div><p style="font-size:10px;margin-top:23px">Hand emojis are decorative memory cues, not accurate sign demonstrations. Open a guide for handshape and movement instructions. ASL has regional variations.</p>`
+  );
+}
+function dictionaryCards() {
+  const filtered = signs.filter(
+    (s) =>
+      (category === "All signs" || s.category === category) &&
+      (!savedOnly || state.saved.includes(s.id)) &&
+      (s.word + " " + s.guide).toLowerCase().includes(search.toLowerCase()),
+  );
+  return filtered.length
+    ? filtered
+        .map(
+          (s) =>
+            `<article class="sign-card"><button class="save-button ${state.saved.includes(s.id) ? "saved" : ""}" data-save="${s.id}" aria-label="${state.saved.includes(s.id) ? "Unsave" : "Save"} ${s.word}" aria-pressed="${state.saved.includes(s.id)}">${state.saved.includes(s.id) ? "♥" : "♡"}</button><div class="sign-glyph" aria-hidden="true">${emoji(s.emoji)}</div><span class="sign-category">${s.category}</span><h3>${s.word}</h3><p>${s.guide.slice(0, 89)}…</p><button class="text-link" data-sign="${s.id}">Open sign guide <span>↗</span></button></article>`,
+        )
+        .join("")
+    : '<div class="empty">No signs found. Try a different word or category.</div>';
+}
+function speech() {
+  return (
+    heading(
+      "Let your words be heard.",
+      "A simple, accessible way to turn written words into spoken ones.",
+    ) +
+    `<div class="tool-layout"><section class="panel"><h3>What would you like to say?</h3><label for="speak-text" class="sr-only">Text to speak</label><textarea id="speak-text" maxlength="3000" placeholder="Type your message here…"></textarea><div class="tool-actions"><label class="range-label">Speed <input type="range" id="speech-rate" min="0.5" max="1.5" step="0.1" value="1"></label><label class="sr-only" for="voice-select">Voice</label><select id="voice-select"><option value="">Default voice</option></select></div><div class="tool-actions"><button class="button dark" id="speak">${icon("speech")} Speak message</button><button class="button outline" id="stop-speech">Stop</button></div><p id="speech-status" role="status" style="margin-top:18px">Your browser’s built-in speech voice is used.</p></section><aside class="panel"><div class="intro-icon">“</div><h2>Every voice matters.</h2><p>Use this tool to say a quick hello, ask a question, or share what’s on your mind.</p><p>Tip: adjust the speed to make your message easier to follow. Available voices depend on your browser and device.</p><div class="chips"><button class="chip" data-phrase="Hello! My name is…">Say hello</button><button class="chip" data-phrase="Could you please help me?">Ask for help</button><button class="chip" data-phrase="Thank you. Have a lovely day!">Say thank you</button></div></aside></div>`
+  );
+}
+function voice() {
+  return (
+    heading(
+      "Say a word. Discover a sign.",
+      "Speak or type a supported word to find its written ASL guide.",
+    ) +
+    `<div class="notice">This is a word-to-guide lookup, not a sign-language sentence translator. ASL has its own grammar. Microphone recognition requires a supported browser and may use your browser provider’s online service.</div><div class="tool-layout"><section class="panel"><h3>Your words</h3><label class="sr-only" for="voice-text">Word to look up</label><input id="voice-text" style="width:100%" placeholder="Try “hello”, “please”, or “thank you”"><div class="tool-actions"><button class="button dark" id="find-sign">Find a sign ↗</button><button class="button outline" id="listen">◉ Use microphone</button></div><p id="voice-status" role="status" style="margin-top:20px">You can always type if a microphone isn’t available.</p></section><section class="panel"><h3>Your sign guide</h3><div id="voice-output" class="tool-output"><p>Search a word to see its handshape and movement instructions here.</p><div class="chips">${["hello", "please", "thank you"].map((s) => `<button class="chip" data-lookup="${s}">${s}</button>`).join("")}</div></div></section></div>`
+  );
+}
+function camera() {
+  return (
+    heading(
+      "Your own little practice studio.",
+      "Use your camera as a mirror while you follow a sign guide.",
+    ) +
+    `<div class="notice">Camera practice only — no automatic recognition or translation. Your video stays on your device and is never recorded or uploaded. Camera access starts only when you choose it.</div><div class="tool-layout"><section class="panel"><div id="camera-preview" style="background:#eeefe5;border-radius:12px;min-height:260px;display:grid;place-items:center;overflow:hidden"><video id="camera-video" autoplay muted playsinline style="display:none;width:100%;transform:scaleX(-1)"></video><p id="camera-placeholder" style="text-align:center">Your space to practice<br><span style="font-size:42px">◉</span></p></div><div class="tool-actions"><button class="button dark" id="start-camera">Turn on camera</button><button class="button outline" id="stop-camera" disabled>Turn off</button></div><p id="camera-status" role="status" style="margin-top:15px">Camera is off.</p></section><section class="panel"><h3>Pick a sign to practice</h3><label class="sr-only" for="practice-sign">Practice sign</label><select id="practice-sign" style="width:100%">${signs.map((s) => `<option value="${s.id}">${s.word}</option>`).join("")}</select><div id="practice-guide" class="tool-output">${practiceGuide(signs[0])}</div><p>Practice slowly. Check your handshape, palm orientation, position, and movement.</p></section></div>`
+  );
+}
+function practiceGuide(s) {
+  return `<div class="sign-glyph" aria-hidden="true">${emoji(s.emoji)}</div><h3>${s.word}</h3><p>${s.guide}</p>`;
+}
+function progress() {
+  return (
+    heading(
+      "Look how far you can go.",
+      "Every little step counts. Here’s your learning story so far.",
+    ) +
+    stats() +
+    `<div class="progress-grid"><section class="panel"><h2>Your learning path</h2>${lessons.map((l) => `<div class="progress-row"><span>${emoji(l.emoji)} &nbsp; ${l.title}</span><button class="text-link" data-lesson="${l.id}">${state.completed.includes(l.id) ? "✓ Review" : "Start →"}</button></div>`).join("")}<p style="font-size:11px;margin-top:20px">${user ? "Your progress is synced to your account." : "Your progress is saved in this browser. Sign in to keep it in an account."}</p>${!user ? '<button class="button dark" id="progress-signin">Save my journey ↗</button>' : ""}</section><section class="panel"><h2>Your practice sessions</h2>${
+      state.quizScores.length
+        ? state.quizScores
+            .slice()
+            .reverse()
+            .slice(0, 8)
+            .map(
+              (q) =>
+                `<div class="progress-row"><span>${esc(q.date)} · ASL foundations</span><b>${q.score} / ${q.total}</b></div>`,
+            )
+            .join("")
+        : '<p>No quizzes yet. A little practice is all it takes to get started.</p><a href="#quiz" class="button outline">Try your first quiz ↗</a>'
+    }<h3 style="margin-top:28px">${state.saved.length} saved signs</h3><p style="font-size:12px">Keep the signs you love close at hand.</p><button class="text-link" id="view-saved">Open your collection ↗</button></section></div>`
+  );
+}
+function about() {
+  return (
+    heading(
+      "Built for connection. Open to everyone.",
+      "A beginner-friendly place to explore American Sign Language.",
+    ) +
+    `<article class="panel about-copy"><h2>A bridge, not a replacement.</h2><p>SignBridge offers introductory written ASL guides, practice quizzes, browser speech tools, and a private camera mirror. It is not an interpreter, a certified course, or an automated sign recognizer. For important medical, legal, or professional conversations, use a qualified interpreter.</p><h2>Language is more than handshapes.</h2><p>ASL is a full language with its own grammar, facial expressions, and cultural context. It is not universal: Indian Sign Language, British Sign Language, and other signed languages are distinct. Our hand emojis are visual decoration, not instructional illustrations.</p><h2>Learn with the Deaf community.</h2><p>Seek out Deaf teachers, local classes, and fluent signers. For further study, explore <a href="https://www.lifeprint.com/" target="_blank" rel="noopener noreferrer">ASL University (Lifeprint) ↗</a> and <a href="https://www.handspeak.com/" target="_blank" rel="noopener noreferrer">HandSpeak ↗</a>. These are external resources, not affiliated with SignBridge.</p><h2>A little respect goes a long way.</h2><p>Get someone’s attention with a gentle wave or, when appropriate, a light tap on the shoulder. Face the person, keep your hands visible, and ask about their communication preferences. Never assume that everyone lip-reads or uses the same signed language.</p><h2>Your privacy, in plain words.</h2><p>Guest progress is stored in this browser. If you create an account, your name, email, password hash, and progress are stored on this app’s server. Camera footage is never saved or sent to the server. Speech recognition, if you opt in, may use your browser’s speech service.</p></article>`
+  );
+}
+function newQuiz() {
+  const pool = [...signs].sort(() => Math.random() - 0.5).slice(0, 5);
+  quiz = {
+    questions: pool.map((s) => ({
+      sign: s,
+      options: [
+        s,
+        ...signs
+          .filter((x) => x.id !== s.id)
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 3),
+      ].sort(() => Math.random() - 0.5),
+    })),
+    index: 0,
+    score: 0,
+    answered: false,
+    finished: false,
+  };
+}
+function quizPage() {
+  if (!quiz) newQuiz();
+  if (quiz.finished)
+    return (
+      heading(
+        "Practice makes connection.",
+        "Celebrate what you know. Keep growing what you don’t.",
+      ) +
+      `<div class="panel quiz-panel quiz-result"><div class="eyebrow">Session complete</div><div class="result-number">${quiz.score} / ${quiz.questions.length}</div><h2>${quiz.score === 5 ? "Beautifully done!" : "Another step forward."}</h2><p>Every attempt builds your understanding. Keep going!</p><button class="button dark" id="restart-quiz">Practice again ↗</button> <a class="button outline" href="#progress">View progress</a></div>`
+    );
+  const q = quiz.questions[quiz.index];
+  return (
+    heading(
+      "A little challenge. A little growth.",
+      "Read the movement description and choose the matching sign.",
+    ) +
+    `<section class="panel quiz-panel"><div class="quiz-top"><span>ASL FOUNDATIONS</span><span>Question ${quiz.index + 1} of ${quiz.questions.length}</span></div><div class="mini-progress" style="margin-bottom:25px"><i style="width:${(quiz.index / quiz.questions.length) * 100}%"></i></div><div class="quiz-prompt">${q.sign.guide}</div><div class="quiz-options">${q.options.map((s) => `<button class="quiz-option" data-answer="${s.id}">${s.word}</button>`).join("")}</div><div class="quiz-feedback" id="quiz-feedback" role="status"></div><button class="button dark" id="next-question" disabled>${quiz.index === 4 ? "See my results" : "Next question"} →</button></section>`
+  );
+}
+function render() {
+  stopMedia();
+  nav();
+  const pages = {
+    home,
+    learn,
+    dictionary,
+    quiz: quizPage,
+    voice,
+    speech,
+    camera,
+    progress,
+    about,
+  };
+  $("#main").innerHTML = (pages[route] || home)();
+  document.title = `${{ home: "Overview", learn: "Learn", dictionary: "Sign dictionary", quiz: "Practice", voice: "Voice to sign", speech: "Text to speech", camera: "Camera practice", progress: "My progress", about: "About" }[route] || "Overview"} · SignBridge`;
+  if (route === "speech") loadVoices();
+}
+function navigate() {
+  const requested = location.hash.slice(1) || "home";
+  route = [
+    "home",
+    "learn",
+    "dictionary",
+    "quiz",
+    "voice",
+    "speech",
+    "camera",
+    "progress",
+    "about",
+  ].includes(requested)
+    ? requested
+    : "home";
+  $("#sidebar").classList.remove("open");
+  $("#menu-toggle").setAttribute("aria-expanded", "false");
+  render();
+  window.scrollTo(0, 0);
+}
+function openModal(html) {
+  $("#modal-content").innerHTML =
+    `<div class="modal-inner"><button class="modal-close" aria-label="Close dialog">×</button>${html}</div>`;
+  const title = $("#modal-content h2");
+  if (title) { title.id = "dialog-title"; $("#modal").setAttribute("aria-labelledby", "dialog-title"); }
+  $("#modal").showModal();
+}
+function signModal(id) {
+  const s = signs.find((s) => s.id === id);
+  openModal(
+    `<div class="eyebrow">${s.category} · ASL sign guide</div><h2 style="margin-top:12px">${s.word}</h2><div class="sign-large" aria-hidden="true">${emoji(s.emoji)}</div><h3>Handshape & movement</h3><p>${s.guide}</p><p style="font-size:10px">The emoji is a memory cue, not an accurate demonstration. Learn movement and expression with a fluent signer.</p><button class="button ${state.saved.includes(id) ? "outline" : "dark"}" data-modal-save="${id}">${state.saved.includes(id) ? "♥ Saved to your collection" : "♡ Save this sign"}</button>`,
+  );
+}
+function lessonModal(id, index = 0) {
+  activeLesson = lessons.find((l) => l.id === id);
+  lessonIndex = index;
+  const s = signs.find((s) => s.id === activeLesson.signs[index]);
+  if ($("#modal").open) $("#modal").close();
+  openModal(
+    `<div class="eyebrow">${activeLesson.category} · ${index + 1} of ${activeLesson.signs.length}</div><h2 style="margin-top:12px">${s.word}</h2><div class="sign-large" aria-hidden="true">${emoji(s.emoji)}</div><h3>Let’s try it together.</h3><p>${s.guide}</p><div class="notice">Practice the handshape and movement slowly. Written guides and decorative emojis cannot convey all the details of ASL.</div><div class="lesson-nav"><button class="button outline" id="lesson-prev" ${index === 0 ? "disabled" : ""}>← Back</button><button class="button dark" id="lesson-next">${index === activeLesson.signs.length - 1 ? "Complete lesson ✓" : "Next sign →"}</button></div>`,
+  );
+}
+function toggleSave(id) {
+  if (state.saved.includes(id))
+    state.saved = state.saved.filter((x) => x !== id);
+  else state.saved.push(id);
+  persist();
+}
+function authModal(mode = "login") {
+  if (user) {
+    openModal(
+      `<div class="eyebrow">YOUR ACCOUNT</div><h2 style="margin-top:15px">Hello, ${esc(user.name)}.</h2><p>${esc(user.email)}</p><p>Your learning progress is saved to this account.</p><button class="button outline" id="logout">Sign out</button>`,
+    );
+    return;
+  }
+  openModal(
+    `<div class="eyebrow">YOUR LEARNING JOURNEY</div><h2 style="margin-top:15px">${mode === "register" ? "A new connection starts here." : "Lovely to see you again."}</h2><p>${mode === "register" ? "Create your free account to save your progress." : "Sign in to pick up where you left off."}</p><form id="auth-form" data-mode="${mode}">${mode === "register" ? '<label for="auth-name">Your name</label><input id="auth-name" name="name" required maxlength="70" autocomplete="name">' : ""}<label for="auth-email">Email address</label><input id="auth-email" name="email" type="email" required maxlength="254" autocomplete="email"><label for="auth-password">Password</label><input id="auth-password" name="password" type="password" required minlength="8" maxlength="128" autocomplete="${mode === "register" ? "new-password" : "current-password"}"><div class="auth-actions"><button type="submit" class="button dark">${mode === "register" ? "Create account" : "Sign in"} ↗</button><button type="button" class="text-link" data-auth="${mode === "register" ? "login" : "register"}">${mode === "register" ? "Already a member?" : "New here? Join us"}</button></div><div class="form-message" id="auth-message" role="alert"></div></form><p class="auth-note">You can also close this window and explore as a guest. No account needed.</p>`,
+  );
+}
+function findSign() {
+  const input = $("#voice-text")
+    .value.trim()
+    .toLowerCase()
+    .replace(/[.!?]/g, "");
+  const aliases = { thanks: "thank you", hi: "hello", bye: "hello" };
+  const s = signs.find(
+    (s) => s.word.toLowerCase() === (aliases[input] || input),
+  );
+  $("#voice-output").innerHTML = s
+    ? `<div class="sign-result">${practiceGuide(s)}<button class="text-link" style="margin-top:15px" data-sign="${s.id}">Open full guide ↗</button></div>`
+    : `<p>${input ? "We don’t have that word yet." : "Enter a word to get started."} Try hello, please, thank you, sorry, yes, no, help, or a word from the dictionary.</p>`;
+}
+function loadVoices() {
+  if (!window.speechSynthesis) {
+    $("#speech-status").textContent =
+      "Speech isn’t supported in this browser. Try a current version of Chrome, Edge, or Safari.";
+    $("#speak").disabled = true;
+    return;
+  }
+  const select = $("#voice-select");
+  if (!select) return;
+  select.innerHTML =
+    '<option value="">Default voice</option>' +
+    speechSynthesis
+      .getVoices()
+      .map(
+        (v, i) =>
+          `<option value="${i}">${esc(v.name)} (${esc(v.lang)})</option>`,
+      )
+      .join("");
+}
+function stopMedia() {
+  if (recognition) {
+    recognition.abort();
+    recognition = null;
+  }
+  if (stream) {
+    stream.getTracks().forEach((t) => t.stop());
+    stream = null;
+  }
+  if (window.speechSynthesis) speechSynthesis.cancel();
+}
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("button, a[data-route]");
+  if (!b) return;
+  if (b.dataset.route) {
+    location.hash = b.dataset.route;
+    return;
+  }
+  if (b.classList.contains("modal-close")) {
+    $("#modal").close();
+    return;
+  }
+  if (b.dataset.lesson) {
+    lessonModal(b.dataset.lesson);
+    return;
+  }
+  if (b.dataset.sign) {
+    signModal(b.dataset.sign);
+    return;
+  }
+  if (b.dataset.auth) {
+    $("#modal").close();
+    authModal(b.dataset.auth);
+    return;
+  }
+  if (b.dataset.save) {
+    toggleSave(b.dataset.save);
+    $("#sign-grid").innerHTML = dictionaryCards();
+    return;
+  }
+  if (b.dataset.modalSave) {
+    toggleSave(b.dataset.modalSave);
+    b.textContent = state.saved.includes(b.dataset.modalSave)
+      ? "♥ Saved to your collection"
+      : "♡ Save this sign";
+    toast(
+      state.saved.includes(b.dataset.modalSave)
+        ? "A little sign, saved for later."
+        : "Sign removed from your collection.",
+    );
+    return;
+  }
+  if (b.dataset.category) {
+    category = b.dataset.category;
+    render();
+    return;
+  }
+  if (b.dataset.phrase) {
+    $("#speak-text").value = b.dataset.phrase;
+    $("#speak-text").focus();
+    return;
+  }
+  if (b.dataset.lookup) {
+    $("#voice-text").value = b.dataset.lookup;
+    findSign();
+    return;
+  }
+  if (b.dataset.answer && !quiz.answered) {
+    quiz.answered = true;
+    const right = quiz.questions[quiz.index].sign;
+    const correct = b.dataset.answer === right.id;
+    if (correct) quiz.score++;
+    document.querySelectorAll("[data-answer]").forEach((el) => {
+      el.disabled = true;
+      if (el.dataset.answer === right.id) el.classList.add("correct");
+      else if (el === b) el.classList.add("wrong");
     });
-    
-    // Toggle current dropdown
-    if (dropdown.style.display === 'block') {
-        dropdown.style.display = 'none';
-    } else {
-        dropdown.style.display = 'block';
+    $("#quiz-feedback").textContent = correct
+      ? "That’s right! Another sign to connect with."
+      : `Good practice! The correct answer is “${right.word}”.`;
+    $("#next-question").disabled = false;
+    return;
+  }
+  switch (b.id) {
+    case "menu-toggle": {
+      const open = $("#sidebar").classList.toggle("open");
+      b.setAttribute("aria-expanded", String(open));
+      break;
     }
-}
-
-// Show section function
-function showSection(sectionId) {
-    // Hide all sections
-    const allSections = document.querySelectorAll('.section, .current-section');
-    allSections.forEach(section => {
-        section.style.display = 'none';
-        section.classList.remove('current-section');
-    });
-    
-    // Show selected section
-    const targetSection = document.getElementById(sectionId);
-    if (targetSection) {
-        targetSection.style.display = 'block';
-        targetSection.classList.add('current-section');
-    }
-    
-    // Update active nav link
-    updateActiveNav(sectionId);
-}
-
-// Update active navigation
-function updateActiveNav(sectionId) {
-    const navLinks = document.querySelectorAll('.nav-link');
-    navLinks.forEach(link => {
-        link.classList.remove('active');
-        if (link.textContent.toLowerCase().includes(sectionId.toLowerCase())) {
-            link.classList.add('active');
-        }
-    });
-}
-
-// Open modal function
-function openModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.style.display = 'flex';
-    }
-}
-
-// Close modal function
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.add('hidden');
-        modal.style.display = 'none';
-    }
-}
-
-// Show dictionary category
-function showDictionaryCategory(category) {
-    showSection('dictionary');
-    
-    // Update active filter button
-    const filterButtons = document.querySelectorAll('.dict-filter-btn');
-    filterButtons.forEach(btn => {
-        if (btn.dataset.category === category) {
-            btn.classList.remove('bg-gray-200', 'hover:bg-gray-300');
-            btn.classList.add('bg-blue-500', 'hover:bg-blue-600', 'text-white');
-        } else {
-            btn.classList.remove('bg-blue-500', 'hover:bg-blue-600', 'text-white');
-            btn.classList.add('bg-gray-200', 'hover:bg-gray-300');
-        }
-    });
-    
-    // Load dictionary content (placeholder)
-    const dictionaryContent = document.getElementById('dictionaryContent');
-    if (dictionaryContent) {
-        dictionaryContent.innerHTML = `
-            <div class="col-span-full text-center py-12">
-                <div class="text-6xl mb-4">📚</div>
-                <h3 class="text-2xl font-bold text-gray-700 mb-2">${category.charAt(0).toUpperCase() + category.slice(1)} Dictionary</h3>
-                <p class="text-gray-500">Loading ${category} signs...</p>
-                <div class="mt-6 animate-pulse">
-                    <div class="h-64 bg-gray-200 rounded-lg"></div>
-                </div>
-            </div>
-        `;
-        
-        // Simulate loading
-        setTimeout(() => {
-            loadDictionaryData(category);
-        }, 500);
-    }
-}
-
-// Load dictionary data
-function loadDictionaryData(category) {
-    const dictionaryContent = document.getElementById('dictionaryContent');
-    const items = [];
-    
-    // Sample data for each category
-    const sampleData = {
-        alphabets: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
-        numbers: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
-        daysMonths: ['Monday', 'Tuesday', 'January', 'February'],
-        colors: ['Red', 'Blue', 'Green', 'Yellow'],
-        family: ['Mother', 'Father', 'Sister', 'Brother'],
-        greetings: ['Hello', 'Goodbye', 'Thank You', 'Please'],
-        food: ['Apple', 'Bread', 'Water', 'Milk'],
-        animals: ['Dog', 'Cat', 'Bird', 'Fish'],
-        emotions: ['Happy', 'Sad', 'Angry', 'Excited']
-    };
-    
-    const categoryItems = sampleData[category] || ['Item 1', 'Item 2', 'Item 3', 'Item 4'];
-    
-    categoryItems.forEach(item => {
-        items.push(`
-            <div class="dictionary-item">
-                <img src="https://placehold.co/150x150/3b82f6/ffffff?text=${item}" alt="${item}">
-                <h4 class="font-semibold text-gray-800">${item}</h4>
-            </div>
-        `);
-    });
-    
-    dictionaryContent.innerHTML = items.join('');
-}
-
-// Initialize quizzes
-function initQuizzes() {
-    // Alphabet quiz
-    const alphabetQuiz = {
-        questions: [
-            {
-                image: 'https://placehold.co/150x150/e0f2fe/60a5fa?text=A',
-                options: ['A', 'B', 'C', 'D'],
-                correct: 'A'
-            },
-            {
-                image: 'https://placehold.co/150x150/e0f2fe/60a5fa?text=B',
-                options: ['A', 'B', 'C', 'D'],
-                correct: 'B'
-            }
-        ]
-    };
-    
-    // Add event listeners for quiz buttons
-    const submitAlphaBtn = document.getElementById('alpha-submitQuiz');
-    const nextAlphaBtn = document.getElementById('alpha-nextQuiz');
-    
-    if (submitAlphaBtn) {
-        submitAlphaBtn.addEventListener('click', submitQuiz);
-    }
-    if (nextAlphaBtn) {
-        nextAlphaBtn.addEventListener('click', nextQuestion);
-    }
-}
-
-// Submit quiz function
-function submitQuiz() {
-    // Quiz logic here
-    showNotification('Quiz submitted!', 'success');
-}
-
-// Next question function
-function nextQuestion() {
-    // Next question logic here
-    showNotification('Next question loaded!', 'info');
-}
-
-// Text to speech handler
-function setupTextToSpeech() {
-    const speakBtn = document.getElementById('speakText');
-    const textArea = document.getElementById('textToSpeak');
-    
-    if (speakBtn && textArea) {
-        speakBtn.addEventListener('click', () => {
-            const text = textArea.value.trim();
-            if (text) {
-                speakText(text);
-                showNotification('Speaking text...', 'info');
-            } else {
-                showNotification('Please enter some text first!', 'warning');
-            }
+    case "profile-button":
+    case "progress-signin":
+      authModal();
+      break;
+    case "help-button":
+      location.hash = "about";
+      break;
+    case "saved-toggle":
+      savedOnly = !savedOnly;
+      render();
+      break;
+    case "view-saved":
+      savedOnly = true;
+      category = "All signs";
+      search = "";
+      location.hash = "dictionary";
+      break;
+    case "lesson-prev":
+      lessonModal(activeLesson.id, lessonIndex - 1);
+      break;
+    case "lesson-next":
+      if (lessonIndex < activeLesson.signs.length - 1)
+        lessonModal(activeLesson.id, lessonIndex + 1);
+      else {
+        if (!state.completed.includes(activeLesson.id))
+          state.completed.push(activeLesson.id);
+        activity();
+        persist();
+        $("#modal").close();
+        render();
+        toast("A little more connected. Lesson complete!");
+      }
+      break;
+    case "restart-quiz":
+      newQuiz();
+      render();
+      break;
+    case "next-question":
+      if (!quiz.answered) return;
+      if (quiz.index < quiz.questions.length - 1) {
+        quiz.index++;
+        quiz.answered = false;
+      } else {
+        quiz.finished = true;
+        state.quizScores.push({
+          score: quiz.score,
+          total: quiz.questions.length,
+          date: today(),
         });
+        state.quizScores = state.quizScores.slice(-100);
+        activity();
+        persist();
+      }
+      render();
+      break;
+    case "find-sign":
+      findSign();
+      break;
+    case "listen": {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) {
+        $("#voice-status").textContent =
+          "Speech recognition isn’t available here. Please type your word, or try Chrome.";
+        break;
+      }
+      if (recognition) {
+        recognition.stop();
+        break;
+      }
+      recognition = new SR();
+      recognition.lang = "en-US";
+      recognition.interimResults = false;
+      recognition.onstart = () => {
+        if ($("#voice-status")) {
+          $("#voice-status").textContent =
+            "Listening… Say one word or expression.";
+          $("#listen").textContent = "Stop listening";
+        }
+      };
+      recognition.onresult = (event) => {
+        if ($("#voice-text")) {
+          $("#voice-text").value = event.results[0][0].transcript;
+          findSign();
+          $("#voice-status").textContent = "Word captured. Check your guide.";
+        }
+      };
+      recognition.onerror = (event) => {
+        if ($("#voice-status"))
+          $("#voice-status").textContent =
+            `Microphone unavailable (${event.error}). You can type instead.`;
+      };
+      recognition.onend = () => {
+        recognition = null;
+        if ($("#listen")) $("#listen").textContent = "◉ Use microphone";
+      };
+      try {
+        recognition.start();
+      } catch {
+        recognition = null;
+        $("#voice-status").textContent =
+          "Could not start the microphone. Please type instead.";
+      }
+      break;
     }
-}
-
-// Close dropdowns when clicking outside
-document.addEventListener('click', function(event) {
-    if (!event.target.matches('.nav-link') && !event.target.closest('.dropdown')) {
-        const dropdowns = document.querySelectorAll('.dropdown-menu');
-        dropdowns.forEach(dropdown => {
-            dropdown.style.display = 'none';
+    case "speak": {
+      const text = $("#speak-text").value.trim();
+      if (!text) {
+        toast("Add a few words first.");
+        break;
+      }
+      speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = Number($("#speech-rate").value);
+      const v = $("#voice-select").value;
+      if (v !== "") utterance.voice = speechSynthesis.getVoices()[Number(v)];
+      utterance.onstart = () => {
+        if ($("#speech-status"))
+          $("#speech-status").textContent = "Speaking your message…";
+      };
+      utterance.onend = () => {
+        if ($("#speech-status"))
+          $("#speech-status").textContent = "Message complete.";
+      };
+      utterance.onerror = () => {
+        if ($("#speech-status"))
+          $("#speech-status").textContent =
+            "Speech stopped or unavailable. Check your device’s voices and audio settings.";
+      };
+      speechSynthesis.speak(utterance);
+      break;
+    }
+    case "stop-speech":
+      speechSynthesis.cancel();
+      $("#speech-status").textContent = "Speech stopped.";
+      break;
+    case "start-camera":
+      try {
+        if (!navigator.mediaDevices?.getUserMedia)
+          throw new Error("Camera access is not supported here.");
+        b.disabled = true;
+        const media = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user" },
+          audio: false,
         });
-    }
+        if (route !== "camera") {
+          media.getTracks().forEach((t) => t.stop());
+          break;
+        }
+        stream = media;
+        $("#camera-video").srcObject = stream;
+        $("#camera-video").style.display = "block";
+        $("#camera-placeholder").style.display = "none";
+        $("#stop-camera").disabled = false;
+        $("#camera-status").textContent =
+          "Your private practice mirror is on. Nothing is recorded.";
+      } catch (err) {
+        if ($("#camera-status")) {
+          $("#camera-status").textContent =
+            "Camera unavailable. Please allow camera access or use the written guide.";
+          b.disabled = false;
+        }
+      }
+      break;
+    case "stop-camera":
+      stopMedia();
+      $("#camera-video").srcObject = null;
+      $("#camera-video").style.display = "none";
+      $("#camera-placeholder").style.display = "block";
+      $("#start-camera").disabled = false;
+      b.disabled = true;
+      $("#camera-status").textContent = "Camera is off.";
+      break;
+    case "logout":
+      try {
+        await api("/api/logout", { method: "POST", body: {} });
+        user = null;
+        state = { completed: [], saved: [], quizScores: [], activity: [] };
+        localStorage.removeItem("signbridge-progress");
+        $("#modal").close();
+        render();
+        toast("You’re signed out. Your account progress is saved.");
+      } catch (err) {
+        toast(err.message);
+      }
+      break;
+  }
 });
-
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    // Voice to sign initialization
-    const startBtn = document.getElementById('startVoiceToSign');
-    if (startBtn) {
-        // Remove any existing event listeners
-        const newBtn = startBtn.cloneNode(true);
-        startBtn.parentNode.replaceChild(newBtn, startBtn);
-        
-        // Add click event listener
-        newBtn.addEventListener('click', startVoiceToSign);
-    }
-    
-    // Initialize speech recognition
-    speechRecognition = initializeSpeechRecognition();
-    if (speechRecognition) {
-        setupSpeechRecognition();
-    }
-    
-    // Initialize quizzes
-    initQuizzes();
-    
-    // Initialize text to speech
-    setupTextToSpeech();
-    
-    // Initialize dictionary search
-    const searchInput = document.getElementById('dictionarySearch');
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const items = document.querySelectorAll('.dictionary-item');
-            
-            items.forEach(item => {
-                const text = item.textContent.toLowerCase();
-                if (text.includes(searchTerm)) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        });
-    }
-    
-    // Initialize forms
-    setupForms();
-    
-    // Close modals when clicking outside
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => {
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal(this.id);
-            }
-        });
-    });
+document.addEventListener("input", (e) => {
+  if (e.target.id === "sign-search") {
+    search = e.target.value;
+    $("#sign-grid").innerHTML = dictionaryCards();
+  }
 });
-
-// Setup forms
-function setupForms() {
-    // Login form
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            
-            // Simple validation
-            if (email && password) {
-                // For now, simulate login
-                showNotification('Login successful! Redirecting...', 'success');
-                setTimeout(() => {
-                    closeModal('loginModal');
-                }, 1500);
-            } else {
-                showNotification('Please fill in all fields!', 'error');
-            }
-        });
-    }
-    
-    // Signup form
-    const signupForm = document.getElementById('signupForm');
-    if (signupForm) {
-        signupForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const name = document.getElementById('signupName').value;
-            const email = document.getElementById('signupEmail').value;
-            const password = document.getElementById('signupPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            // Validation
-            if (!name || !email || !password || !confirmPassword) {
-                showNotification('Please fill in all fields!', 'error');
-                return;
-            }
-            
-            if (password !== confirmPassword) {
-                showNotification('Passwords do not match!', 'error');
-                return;
-            }
-            
-            if (password.length < 8) {
-                showNotification('Password must be at least 8 characters!', 'error');
-                return;
-            }
-            
-            // For now, simulate registration
-            showNotification('Registration successful! Welcome to SignBridge!', 'success');
-            setTimeout(() => {
-                closeModal('signupModal');
-            }, 1500);
-        });
-    }
-}
-
-// Add CSS animation for fade-in effect
-if (!document.querySelector('#voiceToSignAnimations')) {
-    const style = document.createElement('style');
-    style.id = 'voiceToSignAnimations';
-    style.textContent = `
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-        .animate-fadeIn {
-            animation: fadeIn 0.5s ease-out;
-        }
-    `;
-    document.head.appendChild(style);
-}
-// ===== SIGN TO VOICE - CAMERA & SIGN DETECTION =====
-
-let webcamStream = null;
-let isCameraActive = false;
-let signDetectionInterval = null;
-
-// Simple sign detection mapping (hand positions to meanings)
-const signDetections = {
-    'thumbs_up': 'Good job! 👍',
-    'thumbs_down': 'Not good 👎',
-    'peace_sign': 'Peace ✌️',
-    'open_hand': 'Stop ✋',
-    'wave': 'Hello 👋',
-    'pointing': 'Look there 👉',
-    'fist': 'Strong 💪',
-    'ok_hand': 'Okay 👌'
-};
-
-// Initialize Sign to Voice functionality
-function initSignToVoice() {
-    // Get all elements
-    const startCameraBtn = document.getElementById('startCamera');
-    const stopCameraBtn = document.getElementById('stopCamera');
-    const captureSignBtn = document.getElementById('captureSign');
-    const clearResultsBtn = document.getElementById('clearResults');
-    const playVoiceBtn = document.getElementById('playTranslatedVoice');
-    
-    // Event Listeners
-    if (startCameraBtn) {
-        startCameraBtn.addEventListener('click', startWebcam);
-    }
-    
-    if (stopCameraBtn) {
-        stopCameraBtn.addEventListener('click', stopWebcam);
-    }
-    
-    if (captureSignBtn) {
-        captureSignBtn.addEventListener('click', captureAndDetectSign);
-    }
-    
-    if (clearResultsBtn) {
-        clearResultsBtn.addEventListener('click', clearSignResults);
-    }
-    
-    if (playVoiceBtn) {
-        playVoiceBtn.addEventListener('click', playDetectedVoice);
-    }
-}
-
-// Request camera permission and start webcam
-async function startWebcam() {
-    try {
-        const cameraStatus = document.getElementById('cameraStatus');
-        const cameraPlaceholder = document.getElementById('cameraPlaceholder');
-        const webcamFeed = document.getElementById('webcamFeed');
-        const startCameraBtn = document.getElementById('startCamera');
-        const stopCameraBtn = document.getElementById('stopCamera');
-        const captureSignBtn = document.getElementById('captureSign');
-        
-        // Request camera permission
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                width: { ideal: 640 },
-                height: { ideal: 480 },
-                facingMode: 'user'
-            },
-            audio: false
-        });
-        
-        // Success - got permission
-        webcamStream = stream;
-        isCameraActive = true;
-        
-        // Show camera feed
-        webcamFeed.srcObject = stream;
-        webcamFeed.classList.remove('hidden');
-        cameraPlaceholder.classList.add('hidden');
-        
-        // Update UI
-        if (cameraStatus) {
-            cameraStatus.textContent = 'Camera active - Make a sign and click "Detect Sign"';
-            cameraStatus.className = 'text-lg text-green-600 font-semibold';
-        }
-        
-        if (startCameraBtn) {
-            startCameraBtn.disabled = true;
-            startCameraBtn.innerHTML = '🎥 Camera Active';
-        }
-        
-        if (stopCameraBtn) {
-            stopCameraBtn.disabled = false;
-        }
-        
-        if (captureSignBtn) {
-            captureSignBtn.disabled = false;
-        }
-        
-        showNotification('Camera started successfully! Make a sign and click "Detect Sign"', 'success');
-        
-    } catch (error) {
-        console.error('Camera error:', error);
-        
-        let errorMessage = 'Failed to access camera. ';
-        
-        if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-            errorMessage = 'No camera found. Please connect a camera.';
-        } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-            errorMessage = 'Camera is already in use by another application.';
-        } else if (error.name === 'OverconstrainedError' || error.name === 'ConstraintNotSatisfiedError') {
-            errorMessage = 'Camera does not support required settings.';
-        } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-            errorMessage = 'Camera permission denied. Please allow camera access in your browser settings.';
-        } else if (error.name === 'TypeError' || error.name === 'TypeError') {
-            errorMessage = 'Camera access is not supported in this browser.';
-        }
-        
-        showNotification(errorMessage, 'error');
-        
-        // Reset UI
-        const startCameraBtn = document.getElementById('startCamera');
-        if (startCameraBtn) {
-            startCameraBtn.disabled = false;
-            startCameraBtn.innerHTML = `
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                </svg>
-                Start Camera
-            `;
-        }
-    }
-}
-
-// Stop the webcam
-function stopWebcam() {
-    if (webcamStream) {
-        // Stop all tracks
-        webcamStream.getTracks().forEach(track => {
-            track.stop();
-        });
-        
-        webcamStream = null;
-        isCameraActive = false;
-        
-        // Clear any detection interval
-        if (signDetectionInterval) {
-            clearInterval(signDetectionInterval);
-            signDetectionInterval = null;
-        }
-        
-        // Reset UI
-        const webcamFeed = document.getElementById('webcamFeed');
-        const cameraPlaceholder = document.getElementById('cameraPlaceholder');
-        const cameraStatus = document.getElementById('cameraStatus');
-        const startCameraBtn = document.getElementById('startCamera');
-        const stopCameraBtn = document.getElementById('stopCamera');
-        const captureSignBtn = document.getElementById('captureSign');
-        const detectionOverlay = document.getElementById('detectionOverlay');
-        
-        if (webcamFeed) {
-            webcamFeed.srcObject = null;
-            webcamFeed.classList.add('hidden');
-        }
-        
-        if (cameraPlaceholder) {
-            cameraPlaceholder.classList.remove('hidden');
-        }
-        
-        if (cameraStatus) {
-            cameraStatus.textContent = 'Click "Start Camera" to begin sign detection';
-            cameraStatus.className = 'text-lg text-gray-700';
-        }
-        
-        if (startCameraBtn) {
-            startCameraBtn.disabled = false;
-            startCameraBtn.innerHTML = `
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                </svg>
-                Start Camera
-            `;
-        }
-        
-        if (stopCameraBtn) {
-            stopCameraBtn.disabled = true;
-        }
-        
-        if (captureSignBtn) {
-            captureSignBtn.disabled = true;
-        }
-        
-        if (detectionOverlay) {
-            detectionOverlay.classList.add('hidden');
-        }
-        
-        showNotification('Camera stopped', 'info');
-    }
-}
-
-// Capture image and detect sign
-function captureAndDetectSign() {
-    if (!isCameraActive || !webcamStream) {
-        showNotification('Please start the camera first!', 'warning');
-        return;
-    }
-    
-    const webcamFeed = document.getElementById('webcamFeed');
-    const canvas = document.getElementById('signCanvas');
-    const detectionOverlay = document.getElementById('detectionOverlay');
-    const detectedSign = document.getElementById('detectedSign');
-    const translatedText = document.getElementById('translatedTextOutput');
-    const playVoiceBtn = document.getElementById('playTranslatedVoice');
-    
-    if (!webcamFeed || !canvas) return;
-    
-    // Show detection overlay
-    if (detectionOverlay) {
-        detectionOverlay.classList.remove('hidden');
-    }
-    
-    // Set canvas size to match video
-    canvas.width = webcamFeed.videoWidth;
-    canvas.height = webcamFeed.videoHeight;
-    
-    // Draw video frame to canvas
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(webcamFeed, 0, 0, canvas.width, canvas.height);
-    
-    // For now, we'll simulate sign detection
-    // In a real app, you would use TensorFlow.js or another ML library here
-    simulateSignDetection();
-    
-    // Hide detection overlay after "processing"
-    setTimeout(() => {
-        if (detectionOverlay) {
-            detectionOverlay.classList.add('hidden');
-        }
-    }, 1500);
-}
-
-// Simulate sign detection (for demo purposes)
-function simulateSignDetection() {
-    const detectedSign = document.getElementById('detectedSign');
-    const translatedText = document.getElementById('translatedTextOutput');
-    const playVoiceBtn = document.getElementById('playTranslatedVoice');
-    
-    // List of possible signs to detect
-    const signs = Object.keys(signDetections);
-    
-    // Randomly pick a sign for demo (in real app, this would be actual detection)
-    const randomSign = signs[Math.floor(Math.random() * signs.length)];
-    const signMeaning = signDetections[randomSign];
-    
-    // Update UI with detected sign
-    if (detectedSign) {
-        detectedSign.innerHTML = `
-            <div class="text-center">
-                <div class="text-3xl mb-2">${getSignEmoji(randomSign)}</div>
-                <p class="font-bold text-lg text-blue-700">${formatSignName(randomSign)}</p>
-                <p class="text-sm text-gray-600 mt-1">Confidence: ${Math.floor(Math.random() * 30) + 70}%</p>
-            </div>
-        `;
-    }
-    
-    // Update translated text
-    if (translatedText) {
-        translatedText.innerHTML = `
-            <div class="text-center">
-                <p class="text-xl font-semibold text-purple-700">"${signMeaning}"</p>
-                <p class="text-sm text-gray-500 mt-2">Sign detected: ${formatSignName(randomSign)}</p>
-            </div>
-        `;
-    }
-    
-    // Enable play voice button
-    if (playVoiceBtn) {
-        playVoiceBtn.disabled = false;
-        playVoiceBtn.dataset.textToSpeak = signMeaning;
-    }
-    
-    showNotification(`Sign detected: ${formatSignName(randomSign)}`, 'success');
-}
-
-// Get emoji for sign
-function getSignEmoji(signType) {
-    const emojiMap = {
-        'thumbs_up': '👍',
-        'thumbs_down': '👎',
-        'peace_sign': '✌️',
-        'open_hand': '✋',
-        'wave': '👋',
-        'pointing': '👉',
-        'fist': '✊',
-        'ok_hand': '👌'
-    };
-    return emojiMap[signType] || '👐';
-}
-
-// Format sign name for display
-function formatSignName(signType) {
-    return signType.split('_').map(word => 
-        word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ');
-}
-
-// Play voice for detected sign
-function playDetectedVoice() {
-    const playVoiceBtn = document.getElementById('playTranslatedVoice');
-    const textToSpeak = playVoiceBtn?.dataset.textToSpeak;
-    
-    if (textToSpeak) {
-        speakText(textToSpeak);
-        showNotification('Playing voice translation...', 'info');
-    }
-}
-
-// Clear all sign detection results
-function clearSignResults() {
-    const detectedSign = document.getElementById('detectedSign');
-    const translatedText = document.getElementById('translatedTextOutput');
-    const playVoiceBtn = document.getElementById('playTranslatedVoice');
-    
-    if (detectedSign) {
-        detectedSign.innerHTML = 'No sign detected yet';
-        detectedSign.className = 'bg-white p-4 rounded-lg min-h-[60px] flex items-center justify-center text-gray-500 text-lg';
-    }
-    
-    if (translatedText) {
-        translatedText.innerHTML = 'Perform a sign and click "Detect Sign"';
-        translatedText.className = 'bg-white p-4 rounded-lg min-h-[80px] flex items-center justify-center text-gray-500 text-lg';
-    }
-    
-    if (playVoiceBtn) {
-        playVoiceBtn.disabled = true;
-        delete playVoiceBtn.dataset.textToSpeak;
-    }
-    
-    showNotification('Results cleared', 'info');
-}
-
-// Check if we're in the sign-to-voice section and handle camera
-function checkSignToVoiceSection() {
-    const signToVoiceSection = document.getElementById('sign-to-voice');
-    if (signToVoiceSection && signToVoiceSection.classList.contains('current-section')) {
-        // Section is visible
-        console.log('Sign to Voice section is active');
-    } else if (isCameraActive) {
-        // If camera is active but we left the section, stop camera
-        stopWebcam();
-    }
-}
-
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    // ... existing code ...
-    
-    // Initialize sign to voice
-    initSignToVoice();
-    
-    // Check sign to voice section on section changes
-    const originalShowSection = window.showSection;
-    window.showSection = function(sectionId) {
-        // Call original function
-        if (typeof originalShowSection === 'function') {
-            originalShowSection(sectionId);
-        }
-        
-        // Check if we need to stop camera
-        setTimeout(checkSignToVoiceSection, 100);
-    };
+document.addEventListener("change", (e) => {
+  if (e.target.id === "practice-sign")
+    $("#practice-guide").innerHTML = practiceGuide(
+      signs.find((s) => s.id === e.target.value),
+    );
 });
-// ===== UPDATED FOR SIDE-BY-SIDE LAYOUT =====
-
-// Store recent detections
-let recentDetections = [];
-
-// Update recent detections display
-function updateRecentDetections(sign, meaning) {
-    // Add to beginning of array
-    recentDetections.unshift({
-        sign: sign,
-        meaning: meaning,
-        time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-        emoji: getSignEmoji(sign)
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target.id === "voice-text") findSign();
+});
+document.addEventListener("submit", async (e) => {
+  if (e.target.id !== "auth-form") return;
+  e.preventDefault();
+  const form = e.target,
+    button = $("button[type=submit]", form);
+  button.disabled = true;
+  $("#auth-message").textContent = "";
+  try {
+    const data = await api("/api/" + form.dataset.mode, {
+      method: "POST",
+      body: Object.fromEntries(new FormData(form)),
     });
-    
-    // Keep only last 5 detections
-    if (recentDetections.length > 5) {
-        recentDetections = recentDetections.slice(0, 5);
+    user = data.user;
+    const remote = data.progress;
+    state = {
+      completed: [...new Set([...remote.completed, ...state.completed])],
+      saved: [...new Set([...remote.saved, ...state.saved])],
+      activity: [...new Set([...remote.activity, ...state.activity])],
+      quizScores: [
+        ...new Map(
+          [...remote.quizScores, ...state.quizScores].map((q) => [
+            JSON.stringify(q),
+            q,
+          ]),
+        ).values(),
+      ].slice(-100),
+    };
+    persist();
+    $("#modal").close();
+    render();
+    toast("Welcome in. Your journey is saved.");
+  } catch (err) {
+    $("#auth-message").textContent = err.message;
+    button.disabled = false;
+  }
+});
+$("#modal").addEventListener("click", (e) => {
+  if (e.target === $("#modal")) {
+    const r = e.target.getBoundingClientRect();
+    if (
+      e.clientX < r.left ||
+      e.clientX > r.right ||
+      e.clientY < r.top ||
+      e.clientY > r.bottom
+    )
+      e.target.close();
+  }
+});
+if (window.speechSynthesis) speechSynthesis.onvoiceschanged = loadVoices;
+window.addEventListener("hashchange", navigate);
+window.addEventListener("pagehide", stopMedia);
+loadLocal();
+navigate();
+api("/api/me")
+  .then((data) => {
+    if (data.user) {
+      user = data.user;
+      state = data.progress;
+      localStorage.setItem("signbridge-progress", JSON.stringify(state));
+      render();
     }
-    
-    // Update UI
-    const recentContainer = document.getElementById('recentDetections');
-    if (recentContainer) {
-        if (recentDetections.length === 0) {
-            recentContainer.innerHTML = `
-                <div class="text-center py-4 text-gray-500">
-                    <p>No recent detections</p>
-                </div>
-            `;
-        } else {
-            recentContainer.innerHTML = recentDetections.map((detection, index) => `
-                <div class="bg-white p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition duration-200 ${index === 0 ? 'ring-2 ring-blue-200' : ''}">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <div class="text-2xl mr-3">${detection.emoji}</div>
-                            <div>
-                                <p class="font-semibold text-gray-800">${formatSignName(detection.sign)}</p>
-                                <p class="text-sm text-gray-500">${detection.time}</p>
-                            </div>
-                        </div>
-                        <button onclick="speakRecent('${detection.sign}')" class="text-blue-500 hover:text-blue-700">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-    }
-}
-
-// Speak a recent detection
-function speakRecent(signType) {
-    const detection = recentDetections.find(d => d.sign === signType);
-    if (detection) {
-        const meaning = signDetections[signType] || formatSignName(signType);
-        speakText(meaning);
-        showNotification(`Speaking: ${meaning}`, 'info');
-    }
-}
-
-// Updated simulateSignDetection function
-function simulateSignDetection() {
-    const detectedSign = document.getElementById('detectedSign');
-    const translatedText = document.getElementById('translatedTextOutput');
-    const playVoiceBtn = document.getElementById('playTranslatedVoice');
-    
-    // List of possible signs to detect
-    const signs = Object.keys(signDetections);
-    
-    // Randomly pick a sign for demo
-    const randomSign = signs[Math.floor(Math.random() * signs.length)];
-    const signMeaning = signDetections[randomSign];
-    
-    // Update detected sign display
-    if (detectedSign) {
-        detectedSign.innerHTML = `
-            <div class="text-center">
-                <div class="text-5xl mb-3">${getSignEmoji(randomSign)}</div>
-                <p class="font-bold text-xl text-blue-700 mb-1">${formatSignName(randomSign)}</p>
-                <div class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
-                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    ${Math.floor(Math.random() * 30) + 70}% Confidence
-                </div>
-            </div>
-        `;
-    }
-    
-    // Update translation display
-    if (translatedText) {
-        translatedText.innerHTML = `
-            <div class="text-center">
-                <div class="text-3xl mb-2">🗣️</div>
-                <p class="text-lg font-semibold text-purple-700 mb-2">"${signMeaning}"</p>
-                <p class="text-sm text-gray-500">Detected as: ${formatSignName(randomSign)}</p>
-            </div>
-        `;
-    }
-    
-    // Enable play voice button
-    if (playVoiceBtn) {
-        playVoiceBtn.disabled = false;
-        playVoiceBtn.dataset.textToSpeak = signMeaning;
-    }
-    
-    // Add to recent detections
-    updateRecentDetections(randomSign, signMeaning);
-    
-    // Show notification
-    showNotification(`✓ Sign detected: ${formatSignName(randomSign)} → "${signMeaning}"`, 'success');
-}
-
-// Updated clearSignResults function
-function clearSignResults() {
-    const detectedSign = document.getElementById('detectedSign');
-    const translatedText = document.getElementById('translatedTextOutput');
-    const playVoiceBtn = document.getElementById('playTranslatedVoice');
-    const recentContainer = document.getElementById('recentDetections');
-    
-    // Clear current detection
-    if (detectedSign) {
-        detectedSign.innerHTML = `
-            <div class="text-center">
-                <div class="text-4xl mb-2">-</div>
-                <p class="text-gray-600">No sign detected</p>
-            </div>
-        `;
-    }
-    
-    if (translatedText) {
-        translatedText.innerHTML = `
-            <p class="text-gray-500 text-center">Make a sign and click "Detect" to see translation</p>
-        `;
-    }
-    
-    if (playVoiceBtn) {
-        playVoiceBtn.disabled = true;
-        delete playVoiceBtn.dataset.textToSpeak;
-    }
-    
-    // Clear recent detections
-    recentDetections = [];
-    
-    if (recentContainer) {
-        recentContainer.innerHTML = `
-            <div class="text-center py-4 text-gray-500">
-                <p>No recent detections</p>
-            </div>
-        `;
-    }
-    
-    showNotification('Results cleared', 'info');
-}
-
-// Updated initSignToVoice function (simplified)
-function initSignToVoice() {
-    // Get all elements
-    const startCameraBtn = document.getElementById('startCamera');
-    const stopCameraBtn = document.getElementById('stopCamera');
-    const captureSignBtn = document.getElementById('captureSign');
-    const clearResultsBtn = document.getElementById('clearResults');
-    const playVoiceBtn = document.getElementById('playTranslatedVoice');
-    
-    // Event Listeners
-    if (startCameraBtn) startCameraBtn.addEventListener('click', startWebcam);
-    if (stopCameraBtn) stopCameraBtn.addEventListener('click', stopWebcam);
-    if (captureSignBtn) captureSignBtn.addEventListener('click', captureAndDetectSign);
-    if (clearResultsBtn) clearResultsBtn.addEventListener('click', clearSignResults);
-    if (playVoiceBtn) playVoiceBtn.addEventListener('click', playDetectedVoice);
-}
+  })
+  .catch(() => {});
